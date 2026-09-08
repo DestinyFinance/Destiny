@@ -133,9 +133,16 @@
   .line-item input[type=text] { flex: 1; border: none; background: transparent; padding: 0; height: auto; font-size: 13.5px; }
   .line-item input.money-input { width: 116px; text-align: right; font-family: 'Fraunces', serif; }
   .line-total { display: flex; justify-content: space-between; padding-top: 9px; margin-top: 6px; border-top: 1px solid var(--line-strong); font-weight: 600; font-size: 14px; }
+  .income-sub-details { font-size: 12px; color: var(--ink-soft); display: flex; justify-content: space-between; margin-top: 6px; padding-top: 5px; border-top: 1px dashed var(--line); }
   .pin-toggle { border: none; background: transparent; padding: 5px; height: auto; width: auto; color: var(--ink-faint); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .pin-toggle:hover { background: var(--surface-soft); color: var(--ink-soft); }
   .pin-toggle.active { color: var(--primary); background: var(--primary-soft); }
+  .inc-type-select { height: 26px; font-size: 11px; padding: 0 5px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-soft); color: var(--ink); cursor: pointer; }
+  .inc-type-select.is-extra { background: var(--teal-soft); color: var(--teal); border-color: var(--teal); font-weight: 600; }
+  .inc-dest-select { height: 26px; font-size: 11px; padding: 0 5px; border-radius: 6px; border: 1px solid var(--teal); background: var(--teal-soft); color: var(--teal); max-width: 140px; cursor: pointer; }
+  .btn-danger { color: var(--brick) !important; border-color: var(--brick-soft) !important; }
+  .btn-danger:hover { background: var(--brick-soft) !important; border-color: var(--brick) !important; }
+
 
   .cat-block { border-top: 1px solid var(--line); padding: 15px 0 15px 14px; box-shadow: inset 3px 0 0 var(--line-strong); border-radius: 5px; }
   .cat-block:first-child { border-top: none; }
@@ -334,6 +341,14 @@
         <div class="quickstats">
           <div class="quickstats-head">
             <h3 id="qsTitle">Resumo do mês</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="small" id="btnReplicateFixed" title="Replicar valores fixos de outro mês" style="display:inline-flex; align-items:center; gap:5px; height:28px; font-size:12px; cursor:pointer;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Replicar fixos
+              </button>
+              <button class="small btn-danger" id="btnDeleteMonth" title="Excluir este mês" style="display:inline-flex; align-items:center; gap:5px; height:28px; font-size:12px; cursor:pointer;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Excluir mês
+              </button>
+            </div>
           </div>
           <div class="qs-row">
             <div class="qs-item">
@@ -370,8 +385,12 @@
           <div>
             <div class="panel">
               <h2>Entradas <span class="subtotal num" id="incomeSubtotal">R$ 0</span></h2>
-              <p class="panel-note">Toque no ícone de repetição para marcar uma entrada como fixa — ela é lançada automaticamente nos próximos meses que você criar.</p>
+              <p class="panel-note">Marque como <strong>Fixa</strong> para repetir todo mês. Entradas <strong>Extras</strong> (férias, 13º, bônus) não inflam os limites das outras categorias e podem ser destinadas à sobra ou a uma categoria específica.</p>
               <div id="incomeList"></div>
+              <div class="income-sub-details" id="incomeDetails">
+                <span>Base distribuível (%): <strong class="num" id="incomeBaseTotal">R$ 0</strong></span>
+                <span>Extras: <strong class="num" id="incomeExtraTotal">R$ 0</strong></span>
+              </div>
               <div class="line-total"><span>Total</span><span class="num" id="incomeTotal">R$ 0</span></div>
               <button class="small" id="addIncome" style="margin-top:10px;">+ Nova entrada</button>
             </div>
@@ -579,7 +598,14 @@ function migrate(raw){
     Object.keys(raw.months).forEach(ym => {
       const m = raw.months[ym];
       months[ym] = {
-        incomeItems: Array.isArray(m.incomeItems) ? m.incomeItems : [],
+        incomeItems: (Array.isArray(m.incomeItems) ? m.incomeItems : []).map(i => ({
+          id: i.id || uid(),
+          nome: i.nome || '',
+          valor: typeof i.valor === 'number' ? i.valor : 0,
+          fixo: !!i.fixo,
+          tipo: i.tipo === 'extra' ? 'extra' : 'regular',
+          destinoCatId: i.destinoCatId || ''
+        })),
         categories: (m.categories || []).map(c => ({
           id: c.id || uid(), nome: c.nome || 'Categoria', pct: c.pct || 0,
           tipo: c.tipo || 'gasto', items: Array.isArray(c.items) ? c.items : []
@@ -646,15 +672,105 @@ function carryFixedItems(items){
   return (items || []).filter(it => it.fixo).map(it => ({ id: uid(), nome: it.nome, valor: it.valor, fixo: true }));
 }
 
-function ensureMonth(ym){
+function hasFixedItems(monthObj){
+  if (!monthObj) return false;
+  const hasFixedInc = (monthObj.incomeItems || []).some(i => i.fixo);
+  const hasFixedCat = (monthObj.categories || []).some(c => (c.items || []).some(i => i.fixo));
+  return hasFixedInc || hasFixedCat;
+}
+
+function findBestTemplateMonth(excludeYm){
+  const existing = Object.keys(data.months).filter(m => m !== excludeYm).sort();
+  if (!existing.length) return null;
+  // 1. Mês anterior mais próximo que tenha itens fixos
+  const prevWithFixed = existing.filter(m => m < excludeYm && hasFixedItems(data.months[m]));
+  if (prevWithFixed.length) return prevWithFixed[prevWithFixed.length - 1];
+  // 2. Qualquer mês existente que tenha itens fixos
+  const anyWithFixed = existing.filter(m => hasFixedItems(data.months[m]));
+  if (anyWithFixed.length) return anyWithFixed[anyWithFixed.length - 1];
+  // 3. Mês cronologicamente anterior mais próximo
+  const prev = existing.filter(m => m < excludeYm);
+  if (prev.length) return prev[prev.length - 1];
+  // 4. Último mês cadastrado
+  return existing[existing.length - 1];
+}
+
+function ensureMonth(ym, replicateFixed = false, templateYm = null){
   if (data.months[ym]) return;
-  const existing = Object.keys(data.months).sort();
-  const template = existing.length ? data.months[existing[existing.length - 1]] : null;
-  const categories = template
-    ? template.categories.map(c => ({ id: uid(), nome: c.nome, pct: c.pct, tipo: c.tipo, items: carryFixedItems(c.items) }))
-    : blankCategories();
-  const incomeItems = template ? carryFixedItems(template.incomeItems) : [];
-  data.months[ym] = { incomeItems, categories, activeProfile: template ? template.activeProfile : null };
+  const templateKey = templateYm || findBestTemplateMonth(ym);
+  const template = templateKey ? data.months[templateKey] : null;
+
+  if (template && replicateFixed) {
+    const oldToNewCatMap = {};
+    const categories = template.categories.map(c => {
+      const newId = uid();
+      oldToNewCatMap[c.id] = newId;
+      return {
+        id: newId,
+        nome: c.nome,
+        pct: c.pct,
+        tipo: c.tipo,
+        items: carryFixedItems(c.items)
+      };
+    });
+    const incomeItems = (template.incomeItems || []).filter(it => it.fixo).map(it => ({
+      id: uid(),
+      nome: it.nome,
+      valor: it.valor,
+      fixo: true,
+      tipo: it.tipo || 'regular',
+      destinoCatId: oldToNewCatMap[it.destinoCatId] || ''
+    }));
+    data.months[ym] = { incomeItems, categories, activeProfile: template.activeProfile || null };
+  } else if (template) {
+    const categories = template.categories.map(c => ({
+      id: uid(),
+      nome: c.nome,
+      pct: c.pct,
+      tipo: c.tipo,
+      items: []
+    }));
+    data.months[ym] = { incomeItems: [], categories, activeProfile: template.activeProfile || null };
+  } else {
+    data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
+  }
+}
+
+function replicateFixedIntoMonth(targetYm, sourceYm){
+  const source = data.months[sourceYm];
+  const target = data.months[targetYm];
+  if (!source || !target) return;
+
+  const catMap = {};
+  source.categories.forEach(srcCat => {
+    let tgtCat = target.categories.find(tc => tc.nome.trim().toLowerCase() === srcCat.nome.trim().toLowerCase());
+    if (!tgtCat) {
+      tgtCat = { id: uid(), nome: srcCat.nome, pct: srcCat.pct, tipo: srcCat.tipo, items: [] };
+      target.categories.push(tgtCat);
+    }
+    catMap[srcCat.id] = tgtCat.id;
+
+    (srcCat.items || []).filter(it => it.fixo).forEach(srcIt => {
+      const exists = tgtCat.items.some(ti => ti.nome.trim().toLowerCase() === srcIt.nome.trim().toLowerCase());
+      if (!exists) {
+        tgtCat.items.push({ id: uid(), nome: srcIt.nome, valor: srcIt.valor, fixo: true });
+      }
+    });
+  });
+
+  (source.incomeItems || []).filter(it => it.fixo).forEach(srcIt => {
+    const exists = target.incomeItems.some(ti => ti.nome.trim().toLowerCase() === srcIt.nome.trim().toLowerCase());
+    if (!exists) {
+      target.incomeItems.push({
+        id: uid(),
+        nome: srcIt.nome,
+        valor: srcIt.valor,
+        fixo: true,
+        tipo: srcIt.tipo || 'regular',
+        destinoCatId: catMap[srcIt.destinoCatId] || ''
+      });
+    }
+  });
 }
 
 function currentMonthData(){
@@ -664,6 +780,20 @@ function currentMonthData(){
 
 function totalIncome(md){
   return (md.incomeItems || []).reduce((s,i) => s + (i.valor || 0), 0);
+}
+function regularIncome(md){
+  return (md.incomeItems || []).filter(i => i.tipo !== 'extra').reduce((s,i) => s + (i.valor || 0), 0);
+}
+function extraIncome(md){
+  return (md.incomeItems || []).filter(i => i.tipo === 'extra').reduce((s,i) => s + (i.valor || 0), 0);
+}
+function extraIncomeForCategory(md, catId){
+  return (md.incomeItems || []).filter(i => i.tipo === 'extra' && i.destinoCatId === catId).reduce((s,i) => s + (i.valor || 0), 0);
+}
+function categoryLimit(md, cat){
+  const base = regularIncome(md) * (cat.pct || 0) / 100;
+  const extra = extraIncomeForCategory(md, cat.id);
+  return base + extra;
 }
 function totalEntries(list){
   return (list || []).reduce((s,i) => s + (i.valor || 0), 0);
@@ -792,13 +922,31 @@ function renderMonthsBar(){
   const hint = document.createElement('div');
   hint.className = 'month-add-hint';
   addWrap.parentElement.appendChild(hint);
-  addBtn.addEventListener('click', () => {
+  addBtn.addEventListener('click', async () => {
     hint.textContent = '';
     if (!input.value) { hint.textContent = 'Escolha um mês antes de adicionar.'; return; }
-    ensureMonth(input.value);
-    currentMonth = input.value;
+    const ym = input.value;
+    if (data.months[ym]) {
+      currentMonth = ym;
+      activeView = 'month';
+      renderAll();
+      return;
+    }
+
+    const templateMonth = findBestTemplateMonth(ym);
+    let replicate = false;
+    if (templateMonth && data.months[templateMonth]) {
+      const hasFixed = hasFixedItems(data.months[templateMonth]);
+      const question = hasFixed
+        ? `Criar o mês de ${monthLabelLong(ym)}?\n\nDeseja replicar os valores fixos e categorias de ${monthLabel(templateMonth)}?`
+        : `Criar o mês de ${monthLabelLong(ym)}?\n\nDeseja replicar a estrutura de categorias de ${monthLabel(templateMonth)}?`;
+      replicate = confirm(question);
+    }
+
+    ensureMonth(ym, replicate, templateMonth);
+    currentMonth = ym;
     activeView = 'month';
-    saveData();
+    await persistNow();
     renderAll();
   });
 }
@@ -811,10 +959,21 @@ function renderIncome(){
     list.innerHTML = '<p class="empty">Nenhuma entrada lançada. Adicione salário, sobra, PL, etc.</p>';
   }
   md.incomeItems.forEach(item => {
+    const isExtra = item.tipo === 'extra';
     const row = document.createElement('div');
-    row.className = 'line-item';
+    row.className = 'line-item' + (isExtra ? ' is-extra' : '');
     row.innerHTML = `
       <input type="text" value="${item.nome}" data-inc="${item.id}" data-field="nome" placeholder="Descrição" />
+      <select class="inc-type-select${isExtra ? ' is-extra' : ''}" data-inc="${item.id}" data-field="tipo" title="Regular: entra no rateio dos % das categorias. Extra: não divide, fica na sobra ou vai para categoria específica.">
+        <option value="regular" ${!isExtra ? 'selected' : ''}>Regular (% geral)</option>
+        <option value="extra" ${isExtra ? 'selected' : ''}>Extra (não ratear)</option>
+      </select>
+      ${isExtra ? `
+        <select class="inc-dest-select" data-inc="${item.id}" data-field="destinoCatId" title="Destinar este valor extra para uma categoria específica">
+          <option value="" ${!item.destinoCatId ? 'selected' : ''}>Sobra (sem rateio)</option>
+          ${md.categories.map(c => `<option value="${c.id}" ${item.destinoCatId === c.id ? 'selected' : ''}>Destino: ${c.nome}</option>`).join('')}
+        </select>
+      ` : ''}
       <input type="text" inputmode="decimal" class="money-input" value="${moneyStr(item.valor)}" data-inc="${item.id}" data-field="valor" />
       <button class="pin-toggle${item.fixo ? ' active' : ''}" data-fixinc="${item.id}" title="${item.fixo ? 'Fixa — repete todo mês' : 'Marcar como fixa (repete no próximo mês)'}">${REPEAT_ICON}</button>
       <button class="ghost" data-delinc="${item.id}" aria-label="Remover entrada">&times;</button>
@@ -822,8 +981,14 @@ function renderIncome(){
     list.appendChild(row);
   });
   const total = totalIncome(md);
+  const base = regularIncome(md);
+  const extra = extraIncome(md);
   document.getElementById('incomeSubtotal').textContent = fmt(total);
   document.getElementById('incomeTotal').textContent = fmt(total);
+  const baseEl = document.getElementById('incomeBaseTotal');
+  const extraEl = document.getElementById('incomeExtraTotal');
+  if (baseEl) baseEl.textContent = fmt(base);
+  if (extraEl) extraEl.textContent = fmt(extra);
 
   list.querySelectorAll('input[data-inc]').forEach(el => {
     const id = el.dataset.inc, field = el.dataset.field;
@@ -833,6 +998,18 @@ function renderIncome(){
     } else {
       wireLiveField(el, (val) => { item[field] = val; });
     }
+  });
+  list.querySelectorAll('select[data-inc]').forEach(el => {
+    el.addEventListener('change', (e) => {
+      const id = e.target.dataset.inc, field = e.target.dataset.field;
+      const item = md.incomeItems.find(i => i.id === id);
+      item[field] = e.target.value;
+      if (field === 'tipo' && e.target.value !== 'extra') {
+        item.destinoCatId = '';
+      }
+      saveData();
+      renderAll(true);
+    });
   });
   list.querySelectorAll('button[data-fixinc]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -864,7 +1041,9 @@ function renderCategories(){
 
   md.categories.forEach(cat => {
     const items = cat.items || [];
-    const limite = renda * (cat.pct||0) / 100;
+    const baseLimit = regularIncome(md) * (cat.pct||0) / 100;
+    const extraForCat = extraIncomeForCategory(md, cat.id);
+    const limite = baseLimit + extraForCat;
     const gasto = totalEntries(items);
     const st = limitStatus(limite, gasto, cat.tipo);
     const lbl = fieldLabels(cat.tipo);
@@ -882,6 +1061,8 @@ function renderCategories(){
     `).join('');
     if (!items.length) itemsHtml = '<p class="empty" style="padding:4px 0;">Sem lançamentos neste mês.</p>';
 
+    const extraHint = extraForCat > 0 ? ` (${fmt(baseLimit)} base + ${fmt(extraForCat)} extra)` : '';
+
     block.innerHTML = `
       <div class="cat-block-head">
         <input type="text" class="cat-name" value="${cat.nome}" data-catmeta="${cat.id}" data-field="nome" />
@@ -895,7 +1076,7 @@ function renderCategories(){
       <div class="cat-sub">
         <div class="field"><label>${lbl.pctLabel}</label><input type="number" min="0" max="100" value="${cat.pct}" data-catmeta="${cat.id}" data-field="pct" /></div>
         <span class="tag ${cat.tipo}">${cat.tipo}</span>
-        <span class="meta-hint">${lbl.hintLimit}: ${fmt(limite)} · ${lbl.hintDone}: ${fmt(gasto)}</span>
+        <span class="meta-hint">${lbl.hintLimit}: ${fmt(limite)}${extraHint} · ${lbl.hintDone}: ${fmt(gasto)}</span>
       </div>
       <div class="bar"><div style="width:${barWidth}%; background:${st.color};"></div></div>
       <p class="status" style="color:${st.textColor};">${st.text}</p>
@@ -968,6 +1149,8 @@ function renderCategories(){
 function renderSummary(){
   const md = currentMonthData();
   const renda = totalIncome(md);
+  const reg = regularIncome(md);
+  const ext = extraIncome(md);
   let totalGasto = 0, totalPct = 0;
   md.categories.forEach(cat => {
     totalPct += cat.pct || 0;
@@ -977,7 +1160,11 @@ function renderSummary(){
   const stDist = document.getElementById('stDist');
   const stRestante = document.getElementById('stRestante');
 
-  document.getElementById('stRenda').textContent = fmt(renda);
+  if (ext > 0) {
+    document.getElementById('stRenda').innerHTML = `${fmt(renda)} <span style="font-size:11px; font-weight:normal; display:block; color:var(--ink-soft);">${fmt(reg)} reg. + ${fmt(ext)} extra</span>`;
+  } else {
+    document.getElementById('stRenda').textContent = fmt(renda);
+  }
   document.getElementById('stReal').textContent = fmt(totalGasto);
 
   stDist.textContent = Math.round(totalPct) + '%';
@@ -1019,19 +1206,20 @@ function renderOverviewStats(){
 
 function renderDistTable(){
   const md = currentMonthData();
-  const renda = totalIncome(md);
   const tbody = document.getElementById('distBody');
   tbody.innerHTML = '';
   let sumLimite = 0, sumGasto = 0;
   md.categories.forEach(cat => {
-    const limite = renda * (cat.pct||0) / 100;
+    const limite = categoryLimit(md, cat);
     const gasto = totalEntries(cat.items);
     const sobra = limite - gasto;
     const isMeta = cat.tipo === 'investimento' || cat.tipo === 'reserva';
     const sobraBoa = isMeta ? sobra <= 0 : sobra >= 0;
     sumLimite += limite; sumGasto += gasto;
+    const extraForCat = extraIncomeForCategory(md, cat.id);
+    const extraBadge = extraForCat > 0 ? ` <span title="Inclui ${fmt(extraForCat)} de renda extra direcionada" style="font-size:10.5px; color:var(--teal); font-weight:600;">(+extra)</span>` : '';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${cat.nome}</td><td class="num">${fmt(limite)}</td><td class="num">${fmt(gasto)}</td><td class="num ${sobraBoa ? 'sobra-pos' : 'sobra-neg'}">${fmt(sobra)}</td>`;
+    tr.innerHTML = `<td>${cat.nome}${extraBadge}</td><td class="num">${fmt(limite)}</td><td class="num">${fmt(gasto)}</td><td class="num ${sobraBoa ? 'sobra-pos' : 'sobra-neg'}">${fmt(sobra)}</td>`;
     tbody.appendChild(tr);
   });
   const trTotal = document.createElement('tr');
@@ -1117,11 +1305,81 @@ function renderAll(skipMonthsBar){
   applyView();
 }
 
+async function deleteCurrentMonth(){
+  const months = Object.keys(data.months);
+  if (months.length <= 1) {
+    alert('Não é possível apagar o único mês existente.');
+    return;
+  }
+
+  const md = currentMonthData();
+  const totalInc = totalIncome(md);
+  const totalExp = md.categories.reduce((s, c) => s + totalEntries(c.items), 0);
+  const incCount = (md.incomeItems || []).filter(i => (i.valor || 0) > 0).length;
+  const expCount = md.categories.reduce((s, c) => s + (c.items || []).filter(i => (i.valor || 0) > 0).length, 0);
+  const totalCount = incCount + expCount;
+
+  let msg = '';
+  if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
+    msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES INFORMADOS!\n\n` +
+      `• ${totalCount} lançamento(s) com valor\n` +
+      `• Total de receitas: ${fmt(totalInc)}\n` +
+      `• Total de despesas/reservas: ${fmt(totalExp)}\n\n` +
+      `Todos os lançamentos deste mês serão excluídos permanentemente.\n\n` +
+      `Tem certeza que deseja apagar ${monthLabel(currentMonth)}?`;
+  } else {
+    msg = `Tem certeza que deseja apagar o mês de ${monthLabelLong(currentMonth)}?`;
+  }
+
+  if (!confirm(msg)) return;
+
+  const deletedYm = currentMonth;
+  delete data.months[deletedYm];
+
+  const remaining = Object.keys(data.months).sort();
+  const prevMonths = remaining.filter(m => m < deletedYm);
+  currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : remaining[remaining.length - 1];
+
+  await persistNow();
+  renderAll();
+}
+
+async function handleReplicateFixedToCurrentMonth(){
+  const currentYm = currentMonth;
+  const otherMonths = Object.keys(data.months).filter(m => m !== currentYm).sort();
+  if (!otherMonths.length) {
+    alert('Não há outros meses cadastrados para copiar valores fixos.');
+    return;
+  }
+
+  let sourceYm = findBestTemplateMonth(currentYm);
+  if (!sourceYm || !hasFixedItems(data.months[sourceYm])) {
+    const anyWithFixed = otherMonths.filter(m => hasFixedItems(data.months[m]));
+    if (anyWithFixed.length) {
+      sourceYm = anyWithFixed[anyWithFixed.length - 1];
+    } else {
+      alert('Nenhum outro mês possui lançamentos marcados como fixos (ícone de repetição). Marque lançamentos como fixos no mês desejado primeiro.');
+      return;
+    }
+  }
+
+  const ok = confirm(`Deseja replicar as categorias e os lançamentos fixos de ${monthLabel(sourceYm)} para o mês atual (${monthLabel(currentYm)})?`);
+  if (!ok) return;
+
+  replicateFixedIntoMonth(currentYm, sourceYm);
+  await persistNow();
+  renderAll();
+  alert(`Valores fixos de ${monthLabel(sourceYm)} copiados para ${monthLabel(currentYm)} com sucesso!`);
+}
+
+document.getElementById('btnDeleteMonth')?.addEventListener('click', deleteCurrentMonth);
+document.getElementById('btnReplicateFixed')?.addEventListener('click', handleReplicateFixedToCurrentMonth);
+
 document.getElementById('navOverview').addEventListener('click', () => { activeView = 'overview'; applyView(); });
 document.getElementById('navMonth').addEventListener('click', () => { activeView = 'month'; applyView(); });
 
 document.getElementById('addIncome').addEventListener('click', () => {
-  currentMonthData().incomeItems.push({ id: uid(), nome: '', valor: 0 });
+  currentMonthData().incomeItems.push({ id: uid(), nome: '', valor: 0, fixo: false, tipo: 'regular', destinoCatId: '' });
   saveData();
   renderAll();
 });
