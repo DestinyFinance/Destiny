@@ -528,7 +528,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  onAuthStateChanged, signOut, sendPasswordResetEmail
+  onAuthStateChanged, signOut, sendPasswordResetEmail,
+  setPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -545,6 +546,8 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
+// Não mantém sessão entre recarregamentos: ao dar refresh na página, é preciso entrar de novo.
+setPersistence(auth, inMemoryPersistence).catch((e) => console.error('Erro ao configurar persistência', e));
 
 let currentUser = null;
 let authMode = 'login'; // 'login' | 'signup'
