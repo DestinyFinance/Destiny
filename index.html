@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
   :root {
     --bg: #EEF1FA;
@@ -1294,6 +1295,11 @@ function renderDistTable(){
 const palette = ['#3652F0', '#0E9D74', '#C4881F', '#E14640', '#5B5FA6', '#7A5416', '#6A4DF4', '#1F8FC4'];
 const REPEAT_ICON = '<svg class="icon" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
 
+if (window.ChartDataLabels) {
+  Chart.register(ChartDataLabels);
+  Chart.defaults.plugins.datalabels = { display: false };
+}
+
 function renderDonut(){
   const md = currentMonthData();
   const labels = md.categories.map(c => c.nome);
@@ -1317,12 +1323,35 @@ function renderBar(){
   });
   const labels = Object.keys(totalsByName);
   const totals = labels.map(l => totalsByName[l]);
+  const maxVal = Math.max(1, ...totals);
   const ctx = document.getElementById('barChart');
   if (barChart) barChart.destroy();
   barChart = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ data: totals, backgroundColor: palette }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { font: { size: 11 } } }, y: { ticks: { font: { size: 11 } } } } }
+    data: { labels, datasets: [{ data: totals, backgroundColor: palette, borderRadius: 4, maxBarThickness: 34 }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 54 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => fmt(c.parsed.x) } },
+        datalabels: {
+          display: true,
+          anchor: 'end',
+          align: 'end',
+          clip: false,
+          color: '#171A33',
+          font: { family: "'Inter', sans-serif", size: 11.5, weight: '600' },
+          formatter: (value) => fmt(value)
+        }
+      },
+      scales: {
+        x: { beginAtZero: true, suggestedMax: maxVal * 1.22, ticks: { font: { size: 11 } } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
   });
 }
 
