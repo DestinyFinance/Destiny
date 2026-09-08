@@ -1,3 +1,3 @@
 # DESTINY
 
-Seu dinheiro. Seu destino!
+O Desinto do seu Dinheiro!
