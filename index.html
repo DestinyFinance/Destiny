@@ -204,6 +204,22 @@
   .invest-tags span { font-size: 10.5px; font-weight: 600; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line-strong); padding: 3px 8px; border-radius: 99px; }
   .invest-disclaimer { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-soft); background: var(--gold-soft); border-radius: 10px; padding: 10px 12px; margin-top: 4px; }
   .invest-disclaimer .icon { color: #7A5416; flex-shrink: 0; margin-top: 1px; }
+
+  /* ---------- tutorial / tour ---------- */
+  #tourHighlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(15,17,51,0.6); transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease; pointer-events: none; z-index: 9998; }
+  #tourCard { position: fixed; z-index: 9999; background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-card); padding: 18px 20px; width: 300px; max-width: calc(100vw - 32px); transition: top .2s ease, left .2s ease, bottom .2s ease; }
+  #tourCard .tour-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--primary); text-transform: uppercase; margin: 0 0 4px; }
+  #tourCard h4 { margin: 0 0 8px; font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; }
+  #tourCard p { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
+  #tourCard .tour-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #tourCard .tour-step-count { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+  #tourCard .tour-btns { display: flex; gap: 6px; }
+  #tourCard button.tour-skip { border: none; background: transparent; color: var(--ink-faint); font-size: 12px; padding: 0; height: auto; font-weight: 500; }
+  #tourCard button.tour-skip:hover { color: var(--brick); background: transparent; }
+  #tourCard button.tour-prev, #tourCard button.tour-next { height: 32px; padding: 0 14px; font-size: 12.5px; }
+  #tourFab { position: fixed; bottom: 22px; right: 22px; width: 46px; height: 46px; border-radius: 99px; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-card); z-index: 500; }
+  #tourFab:hover { background: var(--primary-dark); }
+  @media (max-width: 760px) { #tourCard { width: 260px; } }
   .profile-card .active-badge { position: absolute; top: 14px; right: 14px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--teal); background: var(--teal-soft); padding: 3px 9px; border-radius: 99px; }
 
   .empty { color: var(--ink-faint); font-size: 13px; padding: 0.75rem 0; text-align: center; }
@@ -307,6 +323,9 @@
         <span id="userEmail"></span>
       </div>
       <div class="sidebar-actions" id="heroActions" style="display:none;">
+        <button id="tourBtn" title="Ver tutorial">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 1.7-2.3 3.5"/><path d="M12 17h.01"/></svg>
+        </button>
         <button id="exportBtn" title="Exportar backup">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
         </button>
@@ -341,14 +360,14 @@
     <div class="wrap">
 
       <div id="viewOverview">
-        <div class="ov-stat-row">
+        <div class="ov-stat-row" id="ovStatsRow">
           <div class="ov-stat"><p class="label">Receita total</p><p class="value num" id="ovReceitas">R$ 0</p></div>
           <div class="ov-stat"><p class="label">Despesas totais</p><p class="value num" id="ovDespesas">R$ 0</p></div>
           <div class="ov-stat"><p class="label">Investido no total</p><p class="value num" id="ovInvest">R$ 0</p></div>
           <div class="ov-stat"><p class="label">Saldo acumulado</p><p class="value num" id="ovSaldo">R$ 0</p></div>
         </div>
 
-        <div class="panel" style="margin-bottom:1.5rem;">
+        <div class="panel" style="margin-bottom:1.5rem;" id="panelInvestSuggest">
           <h2>Sugestões de investimento <span class="subtotal num" style="font-size:12px; color:var(--ink-soft); font-family:'Inter',sans-serif; font-weight:600;">Perfil conservador</span></h2>
           <p class="panel-note">Opções de baixo risco, comuns para quem prioriza segurança e liquidez em vez de ganhos maiores. É conteúdo educativo geral — não considera sua situação específica.</p>
           <div class="invest-grid">
@@ -433,7 +452,7 @@
           </div>
         </div>
 
-        <div class="panel" style="margin-bottom:1.5rem;">
+        <div class="panel" style="margin-bottom:1.5rem;" id="panelProfiles">
           <h2>Perfil de categorias deste mês</h2>
           <p class="panel-note">Aplica um conjunto de categorias e limites prontos só para o mês selecionado. Outros meses não são afetados. Depois de aplicar, tudo continua editável.</p>
           <div class="profile-grid" id="profileGrid"></div>
@@ -441,7 +460,7 @@
 
         <div class="grid">
           <div>
-            <div class="panel">
+            <div class="panel" id="panelIncome">
               <h2>Entradas <span class="subtotal num" id="incomeSubtotal">R$ 0</span></h2>
               <p class="panel-note">Marque como <strong>Fixa</strong> para repetir todo mês. Entradas <strong>Extras</strong> (férias, 13º, bônus) não inflam os limites das outras categorias e podem ser destinadas à sobra ou a uma categoria específica.</p>
               <div id="incomeList"></div>
@@ -453,7 +472,7 @@
               <button class="small" id="addIncome" style="margin-top:10px;">+ Nova entrada</button>
             </div>
 
-            <div class="panel">
+            <div class="panel" id="panelCategories">
               <h2>Distribuição por categoria</h2>
               <p class="panel-note">Marque um lançamento como fixo (aluguel, gás, escola, mensalidade...) para ele repetir sozinho sempre que um novo mês for criado.</p>
               <div id="catList"></div>
@@ -462,7 +481,7 @@
           </div>
 
           <div>
-            <div class="panel">
+            <div class="panel" id="panelSummary">
               <h2>Resumo do mês</h2>
               <div class="stat-grid">
                 <div class="stat"><p class="label">Renda</p><p class="value num" id="stRenda">R$ 0</p></div>
@@ -473,7 +492,7 @@
               <div class="chart-box"><canvas id="donutChart"></canvas></div>
             </div>
 
-            <div class="panel">
+            <div class="panel" id="panelDistTable">
               <h2>Tabela de distribuição</h2>
               <table class="dist">
                 <thead><tr><th>Classificação</th><th class="num">Limite</th><th class="num">Gasto</th><th class="num">Sobra</th></tr></thead>
@@ -487,6 +506,23 @@
     </div>
   </div>
 </div>
+
+<div id="tourHighlight" style="display:none;"></div>
+<div id="tourCard" style="display:none;">
+  <p class="tour-eyebrow" id="tourEyebrow">Tutorial</p>
+  <h4 id="tourTitle"></h4>
+  <p id="tourText"></p>
+  <div class="tour-foot">
+    <button class="tour-skip" id="tourSkipBtn">Pular tutorial</button>
+    <div class="tour-btns">
+      <button id="tourPrevBtn" class="tour-prev">Voltar</button>
+      <button id="tourNextBtn" class="tour-next primary">Próximo</button>
+    </div>
+  </div>
+</div>
+<button id="tourFab" title="Ver tutorial" style="display:none;">
+  <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 1.7-2.3 3.5"/><path d="M12 17h.01"/></svg>
+</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -641,6 +677,7 @@ function defaultData(){
   cats[1].items.push({ id: uid(), nome: 'Mercado', valor: 300 });
   return {
     profileName: '',
+    tourSeen: false,
     months: {
       [ym]: {
         incomeItems: [ { id: uid(), nome: 'Salário', valor: 1000 } ],
@@ -672,7 +709,7 @@ function migrate(raw){
         activeProfile: m.activeProfile || null
       };
     });
-    return { months, profileName: raw.profileName || '' };
+    return { months, profileName: raw.profileName || '', tourSeen: !!raw.tourSeen };
   }
   const globalCats = raw.categories || [];
   const months = {};
@@ -689,7 +726,7 @@ function migrate(raw){
     });
     months[ym] = { incomeItems, categories, activeProfile: null };
   });
-  return { months, profileName: raw.profileName || '' };
+  return { months, profileName: raw.profileName || '', tourSeen: !!raw.tourSeen };
 }
 
 async function loadData(){
@@ -1461,6 +1498,181 @@ document.getElementById('btnReplicateFixed')?.addEventListener('click', handleRe
 document.getElementById('navOverview').addEventListener('click', () => { activeView = 'overview'; applyView(); });
 document.getElementById('navMonth').addEventListener('click', () => { activeView = 'month'; applyView(); });
 
+// ---- Tutorial guiado ----
+const TOUR_STEPS = [
+  {
+    view: null, selector: null,
+    title: 'Bem-vindo ao Destiny 👋',
+    text: 'Vamos fazer um tour rápido pelas principais telas, pra você começar a organizar suas finanças sem enrolação. Você pode pular quando quiser.'
+  },
+  {
+    view: null, selector: '.greeting-row',
+    title: 'Diga como quer ser chamado',
+    text: 'Clique no lápis ao lado do "Olá" pra personalizar sua saudação com o seu nome.'
+  },
+  {
+    view: 'overview', selector: '#navOverview',
+    title: 'Visão geral',
+    text: 'Aqui você acompanha todos os meses juntos: receita total, despesas, investimentos e o saldo acumulado.'
+  },
+  {
+    view: 'overview', selector: '#ovStatsRow',
+    title: 'Seus números totais',
+    text: 'Esses cartões somam tudo o que já foi lançado, em todos os meses cadastrados até hoje.'
+  },
+  {
+    view: 'overview', selector: '#panelInvestSuggest',
+    title: 'Sugestões de investimento',
+    text: 'Algumas ideias gerais de baixo risco, pensadas pra perfil conservador. É conteúdo educativo, não uma recomendação personalizada.'
+  },
+  {
+    view: 'overview', selector: '#navMonth',
+    title: 'Editar um mês específico',
+    text: 'É aqui que você lança as entradas e os gastos de cada mês. Vamos abrir essa tela agora.'
+  },
+  {
+    view: 'month', selector: '#panelProfiles',
+    title: 'Comece rápido com um perfil pronto',
+    text: 'Se quiser, aplique um modelo pronto (Investidor, Organizado ou Livre) com categorias e percentuais já sugeridos — depois é só ajustar.'
+  },
+  {
+    view: 'month', selector: '#panelIncome',
+    title: 'Cadastre suas entradas',
+    text: 'Registre salário e outras rendas do mês. Marque como "Fixa" pra repetir automaticamente todo mês.'
+  },
+  {
+    view: 'month', selector: '#panelCategories',
+    title: 'Organize por categoria',
+    text: 'Crie categorias (Essencial, Lazer, Investimentos...), defina um % da renda pra cada uma e lance os gastos dentro delas.'
+  },
+  {
+    view: 'month', selector: '#panelDistTable',
+    title: 'Limite, gasto e sobra de relance',
+    text: 'Essa tabela resume, por categoria, quanto foi reservado, quanto já foi gasto e quanto ainda sobra.'
+  },
+  {
+    view: 'month', selector: '.sidebar-months',
+    title: 'Um mês por vez',
+    text: 'Crie um novo mês quando precisar. Lançamentos marcados como fixos são replicados automaticamente pro mês seguinte.'
+  },
+  {
+    view: null, selector: '#heroActions',
+    title: 'Backup e conta',
+    text: 'Exporte um backup dos seus dados, importe de volta se precisar, ou saia da conta por aqui.'
+  },
+  {
+    view: null, selector: null,
+    title: 'Prontinho! 🎉',
+    text: 'Você já conhece o essencial. Pode rever esse tutorial quando quiser clicando no ícone de ajuda aqui embaixo.'
+  }
+];
+
+let tourStepIndex = 0;
+let tourReposition = null;
+
+function tourResolveTarget(step){
+  if (!step.selector) return null;
+  return document.querySelector(step.selector);
+}
+
+function tourPosition(){
+  const step = TOUR_STEPS[tourStepIndex];
+  const highlight = document.getElementById('tourHighlight');
+  const card = document.getElementById('tourCard');
+  const target = tourResolveTarget(step);
+  const pad = 8;
+
+  if (!target) {
+    highlight.style.width = '0px';
+    highlight.style.height = '0px';
+    highlight.style.top = '50%';
+    highlight.style.left = '50%';
+    card.style.top = '50%';
+    card.style.bottom = 'auto';
+    card.style.left = '50%';
+    card.style.transform = 'translate(-50%, -50%)';
+    return;
+  }
+
+  const rect = target.getBoundingClientRect();
+  highlight.style.width = (rect.width + pad * 2) + 'px';
+  highlight.style.height = (rect.height + pad * 2) + 'px';
+  highlight.style.top = (rect.top - pad) + 'px';
+  highlight.style.left = (rect.left - pad) + 'px';
+
+  card.style.transform = 'none';
+  const cardWidth = card.offsetWidth || 300;
+  let left = rect.left;
+  left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+  card.style.left = left + 'px';
+
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if (spaceBelow > 190) {
+    card.style.top = (rect.bottom + pad + 12) + 'px';
+    card.style.bottom = 'auto';
+  } else {
+    card.style.bottom = (window.innerHeight - rect.top + pad + 12) + 'px';
+    card.style.top = 'auto';
+  }
+}
+
+function tourRenderStep(){
+  const step = TOUR_STEPS[tourStepIndex];
+  if (step.view && step.view !== activeView) { activeView = step.view; applyView(); }
+
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourText').textContent = step.text;
+  document.getElementById('tourEyebrow').textContent = 'Passo ' + (tourStepIndex + 1) + ' de ' + TOUR_STEPS.length;
+  document.getElementById('tourPrevBtn').style.visibility = tourStepIndex === 0 ? 'hidden' : 'visible';
+  document.getElementById('tourNextBtn').textContent = tourStepIndex === TOUR_STEPS.length - 1 ? 'Concluir' : 'Próximo';
+
+  requestAnimationFrame(() => {
+    const target = tourResolveTarget(step);
+    if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    setTimeout(tourPosition, target ? 260 : 0);
+  });
+}
+
+function startTour(){
+  tourStepIndex = 0;
+  document.getElementById('tourHighlight').style.display = 'block';
+  document.getElementById('tourCard').style.display = 'block';
+  document.getElementById('tourFab').style.display = 'none';
+  tourReposition = () => tourPosition();
+  window.addEventListener('resize', tourReposition);
+  window.addEventListener('scroll', tourReposition, true);
+  tourRenderStep();
+}
+
+function endTour(){
+  document.getElementById('tourHighlight').style.display = 'none';
+  document.getElementById('tourCard').style.display = 'none';
+  document.getElementById('tourFab').style.display = 'flex';
+  if (tourReposition) {
+    window.removeEventListener('resize', tourReposition);
+    window.removeEventListener('scroll', tourReposition, true);
+    tourReposition = null;
+  }
+  if (data && !data.tourSeen) {
+    data.tourSeen = true;
+    saveData();
+  }
+}
+
+document.getElementById('tourNextBtn').addEventListener('click', () => {
+  if (tourStepIndex >= TOUR_STEPS.length - 1) { endTour(); return; }
+  tourStepIndex++;
+  tourRenderStep();
+});
+document.getElementById('tourPrevBtn').addEventListener('click', () => {
+  if (tourStepIndex === 0) return;
+  tourStepIndex--;
+  tourRenderStep();
+});
+document.getElementById('tourSkipBtn').addEventListener('click', endTour);
+document.getElementById('tourFab').addEventListener('click', startTour);
+document.getElementById('tourBtn').addEventListener('click', startTour);
+
 document.getElementById('addIncome').addEventListener('click', () => {
   currentMonthData().incomeItems.push({ id: uid(), nome: '', valor: 0, fixo: false, tipo: 'regular', destinoCatId: '' });
   saveData();
@@ -1623,10 +1835,15 @@ onAuthStateChanged(auth, async (user) => {
     updateGreeting();
     await loadData();
     renderAll();
+    document.getElementById('tourFab').style.display = 'flex';
+    if (!data.tourSeen) setTimeout(startTour, 500);
   } else {
     document.getElementById('authGate').style.display = 'block';
     document.getElementById('appRoot').style.display = 'none';
     document.getElementById('heroActions').style.display = 'none';
+    document.getElementById('tourFab').style.display = 'none';
+    document.getElementById('tourHighlight').style.display = 'none';
+    document.getElementById('tourCard').style.display = 'none';
     document.getElementById('subtitle').textContent = 'Sua renda, dividida com intenção.';
     authEmail.value = '';
     authPass.value = '';
