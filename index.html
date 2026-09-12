@@ -344,6 +344,10 @@
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2.2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
         <span id="navMonthLabel">Mês</span>
       </button>
+      <button class="side-nav-item" id="navProfile">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+        Perfil
+      </button>
     </nav>
 
     <div class="sidebar-months">
@@ -353,10 +357,6 @@
     </div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <span class="avatar" id="userAvatar">·</span>
-        <span id="userEmail"></span>
-      </div>
       <div class="sidebar-actions" id="heroActions" style="display:none;">
         <button id="tourBtn" title="Ver tutorial">
           <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 1.7-2.3 3.5"/><path d="M12 17h.01"/></svg>
@@ -533,6 +533,41 @@
         </div>
       </div>
 
+      <div id="viewProfile" style="display:none;">
+        <div class="panel" style="max-width:520px;">
+          <h2>Meu perfil</h2>
+          <div id="profileLockNotice" class="invest-disclaimer" style="display:none; margin-bottom:14px;">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+            <span>Complete seus dados abaixo para continuar usando o Destiny. Isso é necessário só uma vez.</span>
+          </div>
+          <div class="auth-field">
+            <label for="profNome">Nome completo</label>
+            <input type="text" id="profNome" placeholder="Como está no seu documento" />
+          </div>
+          <div class="auth-field">
+            <label for="profApelido">Como você quer ser chamado</label>
+            <input type="text" id="profApelido" maxlength="40" placeholder="Ex.: Zé, Mari..." />
+          </div>
+          <div class="auth-field">
+            <label for="profCpf">CPF</label>
+            <input type="text" id="profCpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" />
+          </div>
+          <div class="auth-field">
+            <label for="profTelefone">Telefone</label>
+            <input type="text" id="profTelefone" inputmode="numeric" placeholder="(00) 00000-0000" maxlength="15" />
+          </div>
+          <div class="auth-field">
+            <label for="profEmail">E-mail</label>
+            <input type="email" id="profEmail" disabled />
+          </div>
+          <p class="auth-alert error" id="profileError"></p>
+          <p class="auth-alert info" id="profileSavedMsg">Perfil salvo com sucesso!</p>
+          <div class="auth-actions" style="margin-top:4px;">
+            <button class="primary" id="profileSaveBtn" style="flex:none; padding:0 22px;">Salvar perfil</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -581,13 +616,15 @@ setPersistence(auth, inMemoryPersistence).catch((e) => console.error('Erro ao co
 
 let currentUser = null;
 let authMode = 'login'; // 'login' | 'signup'
-let activeView = 'overview'; // 'overview' | 'month'
+let activeView = 'overview'; // 'overview' | 'month' | 'profile'
 
 const STORAGE_KEY = 'finance-app-data-v3';
 let data = null;
 let currentMonth = null;
 let donutChart, barChart;
 let saveTimer = null;
+let profileData = null;
+let profileIncomplete = false;
 
 const monthLabel = (ym) => {
   const [y,m] = ym.split('-');
@@ -797,6 +834,90 @@ function saveData(){
   saveTimer = setTimeout(persistNow, 600);
 }
 
+// ---- Perfil pessoal (nome completo, apelido, CPF, telefone) ----
+async function loadProfile(user){
+  try {
+    const snap = await getDoc(doc(db, 'profiles', user.uid));
+    profileData = snap.exists() ? snap.data() : null;
+  } catch(e) {
+    console.error('Erro ao carregar perfil', e);
+    profileData = null;
+  }
+  profileIncomplete = !profileData || !profileData.cpf || !isValidCPF(profileData.cpf);
+}
+
+function formatCpfDisplay(digitsRaw){
+  const d = (digitsRaw || '').replace(/\D/g, '');
+  if (d.length !== 11) return digitsRaw || '';
+  return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function setProfileError(msg){
+  const el = document.getElementById('profileError');
+  el.textContent = msg || '';
+  el.classList.toggle('show', !!msg);
+  if (msg) document.getElementById('profileSavedMsg').classList.remove('show');
+}
+
+function renderProfileView(){
+  if (!document.getElementById('viewProfile')) return;
+  const p = profileData || {};
+  document.getElementById('profNome').value = p.nome || '';
+  document.getElementById('profApelido').value = p.apelido || (data ? data.profileName : '') || '';
+  document.getElementById('profCpf').value = p.cpf ? formatCpfDisplay(p.cpf) : '';
+  document.getElementById('profTelefone').value = p.telefone || '';
+  document.getElementById('profEmail').value = (currentUser && currentUser.email) || '';
+  document.getElementById('profileLockNotice').style.display = profileIncomplete ? 'flex' : 'none';
+  setProfileError('');
+  document.getElementById('profileSavedMsg').classList.remove('show');
+}
+
+async function saveProfile(){
+  const nome = document.getElementById('profNome').value.trim();
+  const apelido = document.getElementById('profApelido').value.trim();
+  const cpfDigits = document.getElementById('profCpf').value.replace(/\D/g, '');
+  const telefone = document.getElementById('profTelefone').value.trim();
+
+  setProfileError('');
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) { setProfileError('Digite seu nome completo.'); return; }
+  if (!isValidCPF(cpfDigits)) { setProfileError('CPF inválido. Confira os números digitados.'); return; }
+  if (!telefone || telefone.replace(/\D/g,'').length < 10) { setProfileError('Digite um telefone válido com DDD.'); return; }
+
+  const saveBtn = document.getElementById('profileSaveBtn');
+  saveBtn.disabled = true;
+  try {
+    const alreadyMine = profileData && profileData.cpf === cpfDigits;
+    if (!alreadyMine) {
+      const cpfRef = doc(db, 'cpfRegistry', cpfDigits);
+      const cpfSnap = await getDoc(cpfRef);
+      if (cpfSnap.exists() && cpfSnap.data().uid !== currentUser.uid) {
+        setProfileError('Este CPF já está cadastrado em outra conta.');
+        saveBtn.disabled = false;
+        return;
+      }
+      await setDoc(cpfRef, { uid: currentUser.uid, createdAt: new Date().toISOString() });
+    }
+    await setDoc(doc(db, 'profiles', currentUser.uid), {
+      nome, apelido, cpf: cpfDigits, telefone, email: (currentUser.email || ''), updatedAt: new Date().toISOString()
+    });
+    profileData = { nome, apelido, cpf: cpfDigits, telefone, email: currentUser.email || '' };
+    profileIncomplete = false;
+    if (data) {
+      data.profileName = apelido || nome.split(' ')[0];
+      saveData();
+      updateGreeting();
+    }
+    renderProfileView();
+    document.getElementById('profileSavedMsg').classList.add('show');
+    applyView();
+  } catch(e) {
+    console.error(e);
+    setProfileError('Não foi possível salvar. Tente novamente.');
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
 function carryFixedItems(items){
   return (items || []).filter(it => it.fixo).map(it => ({ id: uid(), nome: it.nome, valor: it.valor, fixo: true }));
 }
@@ -1003,7 +1124,10 @@ function renderMonthsBar(){
     const btn = document.createElement('button');
     btn.className = 'month-tab' + (ym === currentMonth ? ' active' : '');
     btn.innerHTML = '<span class="dot"></span><span style="flex:1; text-align:left;">' + monthLabel(ym) + '</span>';
-    btn.addEventListener('click', () => { currentMonth = ym; activeView = 'month'; renderAll(); });
+    btn.addEventListener('click', () => {
+      if (profileIncomplete) { activeView = 'profile'; renderProfileView(); applyView(); return; }
+      currentMonth = ym; activeView = 'month'; renderAll();
+    });
     bar.appendChild(btn);
   });
 
@@ -1023,6 +1147,7 @@ function renderMonthsBar(){
   addWrap.parentElement.appendChild(hint);
   addBtn.addEventListener('click', async () => {
     hint.textContent = '';
+    if (profileIncomplete) { activeView = 'profile'; renderProfileView(); applyView(); return; }
     if (!input.value) { hint.textContent = 'Escolha um mês antes de adicionar.'; return; }
     const ym = input.value;
     if (data.months[ym]) {
@@ -1361,8 +1486,10 @@ function renderBar(){
       totalsByName[c.nome] = (totalsByName[c.nome] || 0) + totalEntries(c.items);
     });
   });
-  const labels = Object.keys(totalsByName);
-  const totals = labels.map(l => totalsByName[l]);
+  // Ordena do maior para o menor, pra a barra não ficar "fora de ordem".
+  const sortedEntries = Object.entries(totalsByName).sort((a, b) => b[1] - a[1]);
+  const labels = sortedEntries.map(e => e[0]);
+  const totals = sortedEntries.map(e => e[1]);
   const maxVal = Math.max(1, ...totals);
   const ctx = document.getElementById('barChart');
   if (barChart) barChart.destroy();
@@ -1398,26 +1525,31 @@ function renderBar(){
 function applyView(){
   document.getElementById('viewOverview').style.display = activeView === 'overview' ? 'block' : 'none';
   document.getElementById('viewMonth').style.display = activeView === 'month' ? 'block' : 'none';
+  document.getElementById('viewProfile').style.display = activeView === 'profile' ? 'block' : 'none';
   document.getElementById('navOverview').classList.toggle('active', activeView === 'overview');
   document.getElementById('navMonth').classList.toggle('active', activeView === 'month');
+  document.getElementById('navProfile').classList.toggle('active', activeView === 'profile');
   document.getElementById('navMonthLabel').textContent = currentMonth ? monthLabel(currentMonth) : 'Mês';
+  document.getElementById('navOverview').disabled = profileIncomplete;
+  document.getElementById('navMonth').disabled = profileIncomplete;
   document.getElementById('subtitle').textContent = activeView === 'overview'
     ? 'Visão geral de todos os meses'
-    : (currentMonth ? 'Editando ' + monthLabelLong(currentMonth) : '');
+    : activeView === 'month'
+      ? (currentMonth ? 'Editando ' + monthLabelLong(currentMonth) : '')
+      : 'Seus dados pessoais';
 }
 
 function updateGreeting(){
   const name = data && data.profileName ? data.profileName.trim() : '';
   const fallback = currentUser && currentUser.email ? currentUser.email.split('@')[0] : '';
   document.getElementById('greeting').textContent = 'Olá, ' + (name || fallback);
-  const avatar = document.getElementById('userAvatar');
-  if (avatar) avatar.textContent = (name || fallback || '?').charAt(0).toUpperCase();
 }
 
 function renderAll(skipMonthsBar){
   updateGreeting();
   if (!skipMonthsBar) renderMonthsBar();
   renderProfileGrid();
+  renderProfileView();
   renderIncome();
   renderCategories();
   renderSummary();
@@ -1498,8 +1630,27 @@ async function handleReplicateFixedToCurrentMonth(){
 document.getElementById('btnDeleteMonth')?.addEventListener('click', deleteCurrentMonth);
 document.getElementById('btnReplicateFixed')?.addEventListener('click', handleReplicateFixedToCurrentMonth);
 
-document.getElementById('navOverview').addEventListener('click', () => { activeView = 'overview'; applyView(); });
-document.getElementById('navMonth').addEventListener('click', () => { activeView = 'month'; applyView(); });
+document.getElementById('navOverview').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'overview'; applyView(); });
+document.getElementById('navMonth').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'month'; applyView(); });
+document.getElementById('navProfile').addEventListener('click', () => { activeView = 'profile'; renderProfileView(); applyView(); });
+document.getElementById('profileSaveBtn').addEventListener('click', saveProfile);
+
+// ---- máscaras dos campos de perfil ----
+const profCpfEl = document.getElementById('profCpf');
+const profTelefoneEl = document.getElementById('profTelefone');
+profCpfEl.addEventListener('input', () => {
+  let d = profCpfEl.value.replace(/\D/g, '').slice(0, 11);
+  if (d.length > 9) d = d.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  else if (d.length > 6) d = d.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  else if (d.length > 3) d = d.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  profCpfEl.value = d;
+});
+profTelefoneEl.addEventListener('input', () => {
+  let d = profTelefoneEl.value.replace(/\D/g, '').slice(0, 11);
+  if (d.length > 6) d = d.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
+  else if (d.length > 2) d = d.replace(/(\d{2})(\d{1,5})/, '($1) $2');
+  profTelefoneEl.value = d;
+});
 
 // ---- Tutorial guiado ----
 const TOUR_STEPS = [
@@ -1511,7 +1662,7 @@ const TOUR_STEPS = [
   {
     view: null, selector: '.greeting-row',
     title: 'Diga como quer ser chamado',
-    text: 'Clique no lápis ao lado do "Olá" pra personalizar sua saudação com o seu nome.'
+    text: 'Clique no lápis ao lado do "Olá" ou vá até a aba Perfil pra personalizar sua saudação com o seu nome.'
   },
   {
     view: 'overview', selector: '#navOverview',
@@ -1958,13 +2109,13 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('authGate').style.display = 'none';
     document.getElementById('appRoot').style.display = 'flex';
     document.getElementById('heroActions').style.display = 'flex';
-    document.getElementById('userEmail').textContent = user.email || '';
-    document.getElementById('userAvatar').textContent = (user.email || '?').charAt(0).toUpperCase();
-    updateGreeting();
     await loadData();
+    await loadProfile(user);
+    if (profileIncomplete) activeView = 'profile';
+    updateGreeting();
     renderAll();
     document.getElementById('tourFab').style.display = 'flex';
-    if (!data.tourSeen) setTimeout(startTour, 500);
+    if (!profileIncomplete && !data.tourSeen) setTimeout(startTour, 500);
   } else {
     document.getElementById('trialLockScreen').style.display = 'none';
     document.getElementById('authGate').style.display = 'block';
@@ -1974,6 +2125,9 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('tourHighlight').style.display = 'none';
     document.getElementById('tourCard').style.display = 'none';
     document.getElementById('subtitle').textContent = 'Sua renda, dividida com intenção.';
+    activeView = 'overview';
+    profileData = null;
+    profileIncomplete = false;
     authEmail.value = '';
     authPass.value = '';
   }
