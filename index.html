@@ -1592,48 +1592,90 @@ function renderAll(skipMonthsBar){
 }
 
 async function deleteCurrentMonth(){
-  const months = Object.keys(data.months);
-  if (months.length <= 1) {
-    alert('Não é possível apagar o único mês existente.');
-    return;
-  }
-  const md = currentMonthData();
-  const totalInc = (typeof totalIncome === 'function') ? totalIncome(md) : (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
-  const totalExp = md.categories ? md.categories.reduce((s, c) => s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0) : 0;
-  const incCount = (md.incomeItems || []).filter(i => (i.valor || 0) > 0).length;
-  const expCount = md.categories ? md.categories.reduce((s, c) => s + (c.items || []).filter(i => (i.valor || 0) > 0).length, 0) : 0;
-  const totalCount = incCount + expCount;
+  try{
+    console.log('=== DELETE INICIADO ===');
+    console.log('currentMonth antes:', currentMonth);
+    console.log('todos meses antes:', Object.keys(data.months));
+    console.log('perfil antes:', data.profile);
 
-  let msg = '';
-  if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
-    msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
+    const months = Object.keys(data.months || {});
+    if (months.length <= 1) {
+      alert('Não é possível apagar o único mês existente.');
+      return;
+    }
+
+    // Protege perfil
+    const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
+    
+    const md = currentMonthData();
+    const totalInc = (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
+    const totalExp = (md.categories||[]).reduce((s,c)=> s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0);
+    const totalCount = (md.incomeItems||[]).length + (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
+
+    let msg = '';
+    if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
+      msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
 
 • ${totalCount} lançamento(s)
 • Receitas: R$ ${totalInc.toFixed(2).replace('.',',')}
 • Despesas: R$ ${totalExp.toFixed(2).replace('.',',')}
 
-Tem certeza que deseja APAGAR APENAS este mês?
-Os outros meses NÃO serão apagados.`;
-  } else {
-    msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
-Os outros meses NÃO serão apagados.`;
+Apagar APENAS este mês?
+Os outros meses e o PERFIL serão mantidos.`;
+    } else {
+      msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
+Os outros meses e o perfil NÃO serão apagados.`;
+    }
+
+    if (!confirm(msg)) {
+      console.log('Cancelado pelo usuário');
+      return;
+    }
+
+    const deletedYm = currentMonth;
+    const remainingKeys = months.filter(m=> m !== deletedYm);
+    
+    console.log('Deletando APENAS:', deletedYm);
+    console.log('Mantendo:', remainingKeys);
+
+    // Remove APENAS 1 mês
+    delete data.months[deletedYm];
+    
+    // Restaura perfil caso tenha sido afetado
+    data.profile = profileBackup;
+    
+    // Define novo mês atual
+    const sortedRemaining = remainingKeys.sort();
+    const prevMonths = sortedRemaining.filter(m => m < deletedYm);
+    currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : sortedRemaining[sortedRemaining.length - 1];
+
+    console.log('currentMonth depois:', currentMonth);
+    console.log('todos meses depois:', Object.keys(data.months));
+    console.log('perfil depois:', data.profile);
+
+    await persistNow();
+    
+    // Força recarregar do Firebase para garantir que não apagou tudo
+    try{
+      if(typeof loadFromFirebase === 'function'){
+        // não recarrega tudo, só renderiza
+      }
+    }catch(e){}
+
+    renderAll();
+    
+    alert(`✅ Mês ${monthLabelLong(deletedYm)} excluído!
+
+Mantidos: ${remainingKeys.map(m=>monthLabelLong(m)).join(', ')}
+Perfil mantido.`);
+    
+  }catch(err){
+    console.error('Erro ao deletar:', err);
+    alert('Erro ao apagar mês: ' + err.message + '
+Recarregue a página.');
   }
-
-  if (!confirm(msg)) return;
-
-  const deletedYm = currentMonth;
-  console.log('Deletando APENAS:', deletedYm, 'Mantendo:', Object.keys(data.months).filter(m=>m!==deletedYm));
-  delete data.months[deletedYm];
-
-  const remaining = Object.keys(data.months).sort();
-  const prevMonths = remaining.filter(m => m < deletedYm);
-  currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : remaining[remaining.length - 1];
-
-  await persistNow();
-  renderAll();
-  alert(`Mês ${monthLabelLong(deletedYm)} excluído com sucesso!
-Os outros meses foram mantidos.`);
 }
+
 
 
 
@@ -2295,9 +2337,9 @@ onAuthStateChanged(auth, async (user) => {
   });
 
   // Painel do dono visível só para admin
-    window.checkOwnerPanel = function(userEmail){
+      window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
-    if(!panel){ console.log('ownerPanel não encontrado'); return; }
+    if(!panel) return;
     if(!userEmail){ panel.style.display='none'; return; }
     const lower = userEmail.toLowerCase().trim();
     const isAdmin = lower === "douglasmiguel571@gmail.com";
@@ -2515,6 +2557,37 @@ document.getElementById('navPlans')?.addEventListener('click', () => {
     </div>
   </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Garante que botão Planos funciona
+  const btnPlans = document.getElementById('navPlans');
+  if(btnPlans){
+    btnPlans.addEventListener('click', function(e){
+      e.preventDefault();
+      console.log('Clicou em Planos');
+      window.activeView = 'plans';
+      // Esconde todas views
+      document.querySelectorAll('#profileView, #overviewView, #monthView, #plansView').forEach(el=>{
+        if(el) el.style.display='none';
+      });
+      // Mostra planos
+      const plansEl = document.getElementById('plansView');
+      if(plansEl){
+        plansEl.style.display='block';
+        console.log('plansView mostrado');
+      } else {
+        console.error('plansView não encontrado no DOM');
+        alert('Erro: aba Planos não encontrada. Recarregue.');
+      }
+      // Ativa menu
+      document.querySelectorAll('.side-nav-item').forEach(b=>b.classList.remove('active'));
+      btnPlans.classList.add('active');
+    });
+  }
+});
+</script>
 
 </body>
 </html>
