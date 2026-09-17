@@ -362,7 +362,7 @@
       <div class="months-list" id="monthsBar"></div>
       <div class="month-add" id="monthAddWrap"></div>
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
-    <div id="ownerPanel" style="display:none; margin-top:16px; padding:14px; background:#16231F; border-radius:14px; color:#fff;">
+    <div id="ownerPanel" style="display:block; margin-top:16px; padding:14px; background:#16231F; border-radius:14px; color:#fff; border:2px solid #D1F25A;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; opacity:0.9;">👑 PAINEL DO DONO</span>
         <span style="font-size:9px; opacity:0.6;">só você vê</span>
@@ -2317,12 +2317,14 @@ onAuthStateChanged(auth, async (user) => {
   window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
     if(!panel) return;
-    const adminEmails = ["douglasmiguel571@gmail.com", "douglas.mll", "deimports_sp"];
-    const isAdmin = userEmail && adminEmails.some(a=> userEmail.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(userEmail.toLowerCase()) || userEmail.toLowerCase()===a.toLowerCase());
-    // Também verifica se é admin pelo Firebase (role)
-    if(isAdmin || window.currentUserIsAdmin){
+    if(!userEmail){ panel.style.display='none'; return; }
+    const lower = userEmail.toLowerCase().trim();
+    const isAdmin = lower === "douglasmiguel571@gmail.com";
+    console.log('checkOwnerPanel', userEmail, 'isAdmin', isAdmin);
+    if(isAdmin){
       panel.style.display='block';
-      loadRecentFreeUsers();
+      panel.style.border = '2px solid #D1F25A';
+      if(typeof loadRecentFreeUsers === 'function') loadRecentFreeUsers();
     } else {
       panel.style.display='none';
     }
@@ -2377,6 +2379,59 @@ onAuthStateChanged(auth, async (user) => {
       return originalDigitsToMoney(clean);
     };
   }
+
+  
+  
+// Backup automático diário para não perder dados
+async function backupAutomatico(){
+  try{
+    const user = window.currentUser || firebase.auth().currentUser;
+    if(!user || !data) return;
+    const today = new Date().toISOString().split('T')[0];
+    const backupRef = db.collection('backups').doc(user.uid + '_' + today);
+    const snap = await backupRef.get();
+    if(snap.exists) return; // já fez backup hoje
+    await backupRef.set({
+      uid: user.uid,
+      email: user.email,
+      date: today,
+      state: JSON.stringify(data),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('Backup diário salvo', today);
+  }catch(e){ console.log('Erro backup', e); }
+}
+// Faz backup a cada 5 minutos e ao salvar
+setInterval(backupAutomatico, 5*60*1000);
+const originalPersistNow = window.persistNow;
+if(originalPersistNow){
+  window.persistNow = async function(){
+    const r = await originalPersistNow.apply(this, arguments);
+    backupAutomatico();
+    return r;
+  };
+}
+
+
+  // Fallback: mostra painel após 1.5s se for admin, mesmo se checkOwnerPanel não chamou
+  setTimeout(()=>{
+    // força check admin final
+    try{ const u = firebase.auth().currentUser; if(u && u.email){ window.checkOwnerPanel(u.email); } }catch(e){}
+    const user = window.currentUser || (window.auth && window.auth.currentUser);
+    const email = user?.email || '';
+    if(email){
+      console.log('Fallback checkOwnerPanel para', email);
+      if(window.checkOwnerPanel) window.checkOwnerPanel(email);
+    } else {
+      // Se não tem currentUser ainda, tenta pegar do Firebase Auth
+      try{
+        const authUser = firebase?.auth()?.currentUser || null;
+        if(authUser && authUser.email && window.checkOwnerPanel){
+          window.checkOwnerPanel(authUser.email);
+        }
+      }catch(e){}
+    }
+  }, 1500);
 
   // Intercepta render para garantir painel aparece após login
   const originalRenderAll = window.renderAll;
