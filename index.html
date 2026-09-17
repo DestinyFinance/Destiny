@@ -1597,27 +1597,23 @@ async function deleteCurrentMonth(){
     alert('Não é possível apagar o único mês existente.');
     return;
   }
-
   const md = currentMonthData();
-  const totalInc = totalIncome(md);
-  const totalExp = md.categories.reduce((s, c) => s + totalEntries(c.items), 0);
+  const totalInc = (typeof totalIncome === 'function') ? totalIncome(md) : (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
+  const totalExp = md.categories ? md.categories.reduce((s, c) => s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0) : 0;
   const incCount = (md.incomeItems || []).filter(i => (i.valor || 0) > 0).length;
-  const expCount = md.categories.reduce((s, c) => s + (c.items || []).filter(i => (i.valor || 0) > 0).length, 0);
+  const expCount = md.categories ? md.categories.reduce((s, c) => s + (c.items || []).filter(i => (i.valor || 0) > 0).length, 0) : 0;
   const totalCount = incCount + expCount;
 
   let msg = '';
   if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
     msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
 
-` +
-      `• ${totalCount} lançamento(s)
-` +
-      `• Receitas: ${fmt(totalInc)}
-` +
-      `• Despesas: ${fmt(totalExp)}
+• ${totalCount} lançamento(s)
+• Receitas: R$ ${totalInc.toFixed(2).replace('.',',')}
+• Despesas: R$ ${totalExp.toFixed(2).replace('.',',')}
 
-` +
-      `Apagar APENAS este mês? (os outros meses continuam)`;
+Tem certeza que deseja APAGAR APENAS este mês?
+Os outros meses NÃO serão apagados.`;
   } else {
     msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
 Os outros meses NÃO serão apagados.`;
@@ -1626,7 +1622,7 @@ Os outros meses NÃO serão apagados.`;
   if (!confirm(msg)) return;
 
   const deletedYm = currentMonth;
-  // APENAS o mês atual é deletado
+  console.log('Deletando APENAS:', deletedYm, 'Mantendo:', Object.keys(data.months).filter(m=>m!==deletedYm));
   delete data.months[deletedYm];
 
   const remaining = Object.keys(data.months).sort();
@@ -1635,8 +1631,10 @@ Os outros meses NÃO serão apagados.`;
 
   await persistNow();
   renderAll();
-  alert(`Mês ${monthLabelLong(deletedYm)} excluído. Os outros meses foram mantidos.`);
+  alert(`Mês ${monthLabelLong(deletedYm)} excluído com sucesso!
+Os outros meses foram mantidos.`);
 }
+
 
 
 async function handleReplicateFixedToCurrentMonth(){
@@ -2297,17 +2295,17 @@ onAuthStateChanged(auth, async (user) => {
   });
 
   // Painel do dono visível só para admin
-  window.checkOwnerPanel = function(userEmail){
+    window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
-    if(!panel) return;
+    if(!panel){ console.log('ownerPanel não encontrado'); return; }
     if(!userEmail){ panel.style.display='none'; return; }
     const lower = userEmail.toLowerCase().trim();
     const isAdmin = lower === "douglasmiguel571@gmail.com";
     console.log('checkOwnerPanel', userEmail, 'isAdmin', isAdmin);
     if(isAdmin){
       panel.style.display='block';
-      panel.style.border = '2px solid #D1F25A';
-      if(typeof loadRecentFreeUsers === 'function') loadRecentFreeUsers();
+      panel.style.visibility='visible';
+      if(typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
     } else {
       panel.style.display='none';
     }
@@ -2471,6 +2469,52 @@ document.getElementById('navPlans')?.addEventListener('click', () => {
   };
 })();
 </script>
+
+
+<div id="plansView" class="view" style="display:none; padding:24px;">
+  <div style="max-width:900px; margin:0 auto;">
+    <h2 style="font-size:28px; font-weight:800; margin-bottom:8px; color:#111;">Escolha seu plano</h2>
+    <p style="color:#666; margin-bottom:24px;">Desbloqueie todo o potencial do Destiny</p>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <!-- Essencial -->
+      <div style="border:2px solid #D1F25A; border-radius:20px; padding:24px; background:#16231F; color:#fff; position:relative;">
+        <div style="position:absolute; top:-12px; left:20px; background:#D1F25A; color:#000; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800;">MAIS POPULAR</div>
+        <h3 style="font-size:20px; font-weight:800; margin-top:8px;">Essencial</h3>
+        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$24,90<span style="font-size:14px; font-weight:400; opacity:.7;">/mês</span></p>
+        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
+          <li>✅ Controle completo de receitas e despesas</li>
+          <li>✅ Categorias e metas ilimitadas</li>
+          <li>✅ Relatórios mensais detalhados</li>
+          <li>✅ Backup automático</li>
+          <li>✅ Suporte por e-mail</li>
+        </ul>
+        <a href="https://mpago.la/2z3oH6j" target="_blank" style="display:block; text-align:center; background:#D1F25A; color:#000; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar por R$24,90 →</a>
+        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Pagamento seguro via Mercado Pago</p>
+      </div>
+      
+      <!-- Anual -->
+      <div style="border:2px solid #e5e7eb; border-radius:20px; padding:24px; background:#fff; color:#111;">
+        <h3 style="font-size:20px; font-weight:800;">Anual <span style="background:#D1F25A; color:#000; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800;">-78% OFF</span></h3>
+        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$65,70<span style="font-size:14px; font-weight:400; opacity:.7;">/ano</span></p>
+        <p style="font-size:13px; opacity:.6; margin-top:-8px;">Equivale a R$5,47/mês</p>
+        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
+          <li>✅ Tudo do Essencial</li>
+          <li>✅ Economia de R$233 por ano</li>
+          <li>✅ Acesso prioritário a novidades</li>
+          <li>✅ Suporte prioritário</li>
+          <li>✅ 1 ano completo sem preocupação</li>
+        </ul>
+        <a href="https://mpago.la/2z3oH6j" target="_blank" style="display:block; text-align:center; background:#111; color:#fff; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar Anual R$65,70 →</a>
+        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Melhor custo-benefício</p>
+      </div>
+    </div>
+    
+    <div style="margin-top:24px; padding:16px; background:#f3f4f6; border-radius:12px; text-align:center;">
+      <p style="font-size:13px; color:#666;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
