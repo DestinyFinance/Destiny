@@ -266,6 +266,12 @@
   .lock-wrap p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.6; margin: 0 0 1.4rem; }
   .lock-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--brick-soft); color: var(--brick); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
 </style>
+
+<style>
+#trialLockScreen { display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important; }
+.trial-banner { display:none !important; }
+</style>
+
 </head>
 <body>
 
@@ -2614,6 +2620,25 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
   </div>
 </div>
+
+
+<script>
+// FORÇA SITE ABERTO - emergência
+document.addEventListener('DOMContentLoaded', function(){
+  const lock = document.getElementById('trialLockScreen');
+  if(lock){ lock.style.display='none'; lock.remove(); }
+});
+
+// Sobrescreve qualquer checkTrialAccess futuro
+window.checkTrialAccess = async function(user){
+  console.log('FORÇADO ABERTO para', user.email);
+  const lock = document.getElementById('trialLockScreen');
+  if(lock){ lock.style.display='none'; }
+  const banner = document.getElementById('trialBanner');
+  if(banner){ banner.style.display='none'; }
+  return true;
+};
+</script>
 
 </body>
 </html>
