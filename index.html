@@ -336,20 +336,26 @@
       </div>
     </div>
 
+    
     <nav class="side-nav">
+      <button class="side-nav-item" id="navProfile">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+        Perfil
+      </button>
       <button class="side-nav-item" id="navOverview">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="5" rx="1.6"/><rect x="13" y="10" width="8" height="11" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/></svg>
         Visão geral
       </button>
       <button class="side-nav-item" id="navMonth">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2.2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
-        <span id="navMonthLabel">Mês</span>
+        <span id="navMonthLabel">Meses</span>
       </button>
-      <button class="side-nav-item" id="navProfile">
-        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
-        Perfil
+      <button class="side-nav-item" id="navPlans">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Planos
       </button>
     </nav>
+
 
     <div class="sidebar-months">
       <p class="sidebar-label">Meses</p>
@@ -1180,7 +1186,15 @@ function renderMonthsBar(){
   addWrap.parentElement.appendChild(hint);
   addBtn.addEventListener('click', async () => {
     hint.textContent = '';
-    if (profileIncomplete) { activeView = 'profile'; renderProfileView(); applyView(); return; }
+    window._isCreatingMonth = true;
+    if (profileIncomplete) { activeView = 'profile'; renderProfileView(); applyView(); window._isCreatingMonth=false; return; }
+    // Verifica se pode criar novo mês (se trial acabou e não pagou, bloqueia)
+    const canCreate = await checkTrialAccess(window.currentUser || {uid: 'anon', email: ''});
+    if(!canCreate && window._isCreatingMonth){
+      window._isCreatingMonth=false;
+      activeView='plans'; applyView();
+      return;
+    }
     if (!input.value) { hint.textContent = 'Escolha um mês antes de adicionar.'; return; }
     const ym = input.value;
     if (data.months[ym]) {
@@ -1204,6 +1218,7 @@ function renderMonthsBar(){
     currentMonth = ym;
     activeView = 'month';
     await persistNow();
+    window._isCreatingMonth = false;
     renderAll();
   });
 }
@@ -1609,19 +1624,26 @@ async function deleteCurrentMonth(){
 
   let msg = '';
   if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
-    msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES INFORMADOS!\n\n` +
-      `• ${totalCount} lançamento(s) com valor\n` +
-      `• Total de receitas: ${fmt(totalInc)}\n` +
-      `• Total de despesas/reservas: ${fmt(totalExp)}\n\n` +
-      `Todos os lançamentos deste mês serão excluídos permanentemente.\n\n` +
-      `Tem certeza que deseja apagar ${monthLabel(currentMonth)}?`;
+    msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
+
+` +
+      `• ${totalCount} lançamento(s)
+` +
+      `• Receitas: ${fmt(totalInc)}
+` +
+      `• Despesas: ${fmt(totalExp)}
+
+` +
+      `Apagar APENAS este mês? (os outros meses continuam)`;
   } else {
-    msg = `Tem certeza que deseja apagar o mês de ${monthLabelLong(currentMonth)}?`;
+    msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
+Os outros meses NÃO serão apagados.`;
   }
 
   if (!confirm(msg)) return;
 
   const deletedYm = currentMonth;
+  // APENAS o mês atual é deletado
   delete data.months[deletedYm];
 
   const remaining = Object.keys(data.months).sort();
@@ -1630,7 +1652,9 @@ async function deleteCurrentMonth(){
 
   await persistNow();
   renderAll();
+  alert(`Mês ${monthLabelLong(deletedYm)} excluído. Os outros meses foram mantidos.`);
 }
+
 
 async function handleReplicateFixedToCurrentMonth(){
   const currentYm = currentMonth;
@@ -2364,6 +2388,49 @@ onAuthStateChanged(auth, async (user) => {
       }
     };
   }
+})();
+</script>
+
+
+<script>
+// Reordena e adiciona planos
+document.getElementById('navPlans')?.addEventListener('click', () => { 
+  if (window.profileIncomplete) { activeView = 'profile'; renderProfileView(); applyView(); return; }
+  activeView = 'plans'; 
+  applyView(); 
+});
+
+// Patch applyView para incluir plans
+(function(){
+  const origApplyView = window.applyView;
+  window.applyView = function(){
+    // Esconde todas as views
+    document.querySelectorAll('.view, [id$="View"]').forEach(el=> el.style.display='none');
+    // Mostra conforme activeView
+    if(activeView==='profile'){
+      const el=document.getElementById('profileView'); if(el) el.style.display='block';
+    } else if(activeView==='overview'){
+      const el=document.getElementById('overviewView') || document.getElementById('view-overview'); 
+      if(el) el.style.display='block';
+      else { const e=document.querySelector('[data-view="overview"]'); if(e) e.style.display='block'; }
+    } else if(activeView==='month' || activeView==='meses'){
+      const el=document.getElementById('monthView') || document.getElementById('view-month');
+      if(el) el.style.display='block';
+    } else if(activeView==='plans'){
+      const el=document.getElementById('plansView'); if(el) el.style.display='block';
+    }
+    // Atualiza active no menu
+    document.querySelectorAll('.side-nav-item').forEach(b=>b.classList.remove('active'));
+    const map = {profile:'navProfile', overview:'navOverview', month:'navMonth', meses:'navMonth', plans:'navPlans'};
+    const btnId = map[activeView];
+    if(btnId){ document.getElementById(btnId)?.classList.add('active'); }
+    // Se tem função original, chama também para manter compatibilidade
+    if(typeof origApplyView==='function' && activeView!=='plans'){
+      try{ origApplyView(); }catch(e){}
+      // Garante plansView escondida se não for plans
+      if(activeView!=='plans'){ const p=document.getElementById('plansView'); if(p) p.style.display='none'; }
+    }
+  };
 })();
 </script>
 
