@@ -2126,34 +2126,27 @@ forgotLink.addEventListener('click', async () => {
 // Enquanto não existir ou estiver false, ninguém é afetado. Só o dono do projeto muda isso,
 // direto no console do Firestore (o app nunca escreve nesse documento).
 async function checkTrialAccess(user){
-  try {
-    const configSnap = await getDoc(doc(db, 'config', 'app'));
-    const trialEnforced = configSnap.exists() && configSnap.data().trialEnforced === true;
+  try{
+    // MODO EMERGÊNCIA - site aberto para todos até você configurar depois
+    console.log('MODO EMERGÊNCIA: liberando acesso para', user.email);
     const banner = document.getElementById('trialBanner');
-    banner.style.display = 'none';
-    banner.className = '';
-
-    if (!trialEnforced) return true;
-
-    const trialRef = doc(db, 'trialStatus', user.uid);
-    let trialSnap = await getDoc(trialRef);
-    if (!trialSnap.exists()) {
-      // Primeiro acesso desta pessoa depois do interruptor ter sido ligado: o contador de
-      // 30 dias começa a contar a partir de agora, nunca da data de criação da conta.
-      await setDoc(trialRef, { trialStartDate: new Date().toISOString(), paid: false });
-      trialSnap = await getDoc(trialRef);
+    if(banner){ 
+      const email = (user.email || '').toLowerCase().trim();
+      if(email === "douglasmiguel571@gmail.com"){
+        banner.style.display='flex'; 
+        banner.className='trial-banner paid'; 
+        banner.innerHTML='<span><strong>👑 Admin - Modo emergência ativo - site liberado para todos</strong></span>';
+      } else {
+        banner.style.display='none';
+      }
     }
-    const info = trialSnap.data();
-    const paid = info.paid === true;
-    const diasCorridos = Math.floor((Date.now() - new Date(info.trialStartDate).getTime()) / 86400000);
-    const diasRestantes = 30 - diasCorridos;
+    return true; // LIBERA TODO MUNDO
+  }catch(e){
+    console.error(e);
+    return true;
+  }
+}
 
-    if (paid) {
-      banner.style.display = 'flex';
-      banner.className = 'trial-banner paid';
-      banner.innerHTML = '<span><strong>Assinatura ativa.</strong> Obrigado por apoiar o Destiny.</span>';
-      return true;
-    }
     if (diasRestantes <= 0) {
       return false;
     }
