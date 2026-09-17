@@ -845,6 +845,24 @@ async function loadData(){
 }
 
 async function persistNow(){
+  // PROTEÇÃO: nunca salvar months vazio se já tinha dados
+  if(!data.months || Object.keys(data.months).length === 0){
+    console.error('BLOQUEADO: tentou salvar months vazio! Abortando para não apagar tudo');
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    if(snap.exists()){
+      const saved = JSON.parse(snap.data().state || '{}');
+      if(saved.months && Object.keys(saved.months).length > 0){
+        console.log('Restaurando months do Firebase para não perder dados');
+        data.months = saved.months;
+        if(saved.profile) data.profile = saved.profile;
+      }
+    }
+    if(!data.months || Object.keys(data.months).length === 0){
+      alert('Erro: tentou apagar todos os meses. Operação bloqueada.');
+      return;
+    }
+  }
+
   if (!currentUser) return;
   try {
     await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(data), updatedAt: Date.now() });
@@ -1593,88 +1611,64 @@ function renderAll(skipMonthsBar){
 
 async function deleteCurrentMonth(){
   try{
-    console.log('=== DELETE INICIADO ===');
-    console.log('currentMonth antes:', currentMonth);
-    console.log('todos meses antes:', Object.keys(data.months));
-    console.log('perfil antes:', data.profile);
-
-    const months = Object.keys(data.months || {});
-    if (months.length <= 1) {
+    console.log('=== DELETE ISOLADO INICIADO ===');
+    const mesesAntes = Object.keys(data.months || {});
+    console.log('Meses antes:', mesesAntes);
+    console.log('Perfil antes:', data.profile);
+    
+    if (mesesAntes.length <= 1) {
       alert('Não é possível apagar o único mês existente.');
       return;
     }
 
-    // Protege perfil
+    const deletedYm = currentMonth;
     const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
-    
+    const monthsBackup = JSON.parse(JSON.stringify(data.months));
+
     const md = currentMonthData();
-    const totalInc = (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
-    const totalExp = (md.categories||[]).reduce((s,c)=> s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0);
     const totalCount = (md.incomeItems||[]).length + (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
 
-    let msg = '';
-    if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
-      msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
+    if (!confirm(`Apagar APENAS ${monthLabelLong(deletedYm)}?
+Manter: ${mesesAntes.filter(m=>m!==deletedYm).map(m=>monthLabelLong(m)).join(', ')}
+Perfil será mantido.`)) return;
 
-• ${totalCount} lançamento(s)
-• Receitas: R$ ${totalInc.toFixed(2).replace('.',',')}
-• Despesas: R$ ${totalExp.toFixed(2).replace('.',',')}
-
-Apagar APENAS este mês?
-Os outros meses e o PERFIL serão mantidos.`;
-    } else {
-      msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
-Os outros meses e o perfil NÃO serão apagados.`;
-    }
-
-    if (!confirm(msg)) {
-      console.log('Cancelado pelo usuário');
-      return;
-    }
-
-    const deletedYm = currentMonth;
-    const remainingKeys = months.filter(m=> m !== deletedYm);
-    
-    console.log('Deletando APENAS:', deletedYm);
-    console.log('Mantendo:', remainingKeys);
-
-    // Remove APENAS 1 mês
+    // APENAS remove 1 chave - NUNCA zera objeto
     delete data.months[deletedYm];
     
-    // Restaura perfil caso tenha sido afetado
+    // Restaura perfil
     data.profile = profileBackup;
     
-    // Define novo mês atual
-    const sortedRemaining = remainingKeys.sort();
-    const prevMonths = sortedRemaining.filter(m => m < deletedYm);
-    currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : sortedRemaining[sortedRemaining.length - 1];
+    console.log('Meses depois do delete:', Object.keys(data.months));
+    console.log('Perfil depois:', data.profile);
 
-    console.log('currentMonth depois:', currentMonth);
-    console.log('todos meses depois:', Object.keys(data.months));
-    console.log('perfil depois:', data.profile);
+    // Se por bug apagou tudo, restaura backup
+    if(Object.keys(data.months).length === 0){
+      console.error('BUG DETECTADO: apagou tudo! Restaurando backup');
+      data.months = monthsBackup;
+      delete data.months[deletedYm]; // tenta de novo só 1
+      if(Object.keys(data.months).length === 0){
+        data.months = monthsBackup; // restaura tudo se falhar de novo
+        alert('Erro crítico ao apagar. Nenhum mês foi apagado para proteger seus dados.');
+        return;
+      }
+    }
+
+    // Define novo mês
+    const remaining = Object.keys(data.months).sort();
+    const prevMonths = remaining.filter(m => m < deletedYm);
+    currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : remaining[remaining.length - 1];
 
     await persistNow();
-    
-    // Força recarregar do Firebase para garantir que não apagou tudo
-    try{
-      if(typeof loadFromFirebase === 'function'){
-        // não recarrega tudo, só renderiza
-      }
-    }catch(e){}
-
     renderAll();
-    
-    alert(`✅ Mês ${monthLabelLong(deletedYm)} excluído!
-
-Mantidos: ${remainingKeys.map(m=>monthLabelLong(m)).join(', ')}
-Perfil mantido.`);
+    alert(`✅ ${monthLabelLong(deletedYm)} apagado!
+Mantidos: ${remaining.map(m=>monthLabelLong(m)).join(', ')}`);
     
   }catch(err){
-    console.error('Erro ao deletar:', err);
-    alert('Erro ao apagar mês: ' + err.message + '
-Recarregue a página.');
+    console.error('Erro delete:', err);
+    alert('Erro: ' + err.message);
   }
 }
+
 
 
 
@@ -2206,19 +2200,8 @@ checkTrialAccess = async function(user){
 
 
 
-// ADMIN - 5 cliques na logo
-let adminClicks = 0;
-let adminClickTimer = null;
-function adminClick(){
-  adminClicks++;
-  if(adminClickTimer) clearTimeout(adminClickTimer);
-  adminClickTimer = setTimeout(()=> adminClicks=0, 2000);
-  if(adminClicks>=5){
-    document.getElementById('adminModal').style.display='flex';
-    adminClicks=0;
-  }
-}
-function closeAdmin(){ document.getElementById('adminModal').style.display='none'; }
+// ADMIN DESATIVADO - painel só embaixo para douglasmiguel571@gmail.com
+function closeAdmin(){ /* desativado */ }
 async function liberarCliente(){
   const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
   const plan = document.getElementById('adminPlanSelect').value;
@@ -2243,11 +2226,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   marks.forEach(m=>{
     m.innerHTML = '<img src="'+LOGO_DATA_URI+'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:10px;"/>';
     m.style.cursor='pointer';
-    m.addEventListener('click', adminClick);
+// REMOVIDO TOTAL
   });
   // Também na hero se existir
-  const heroLogo = document.querySelector('.sidebar-brand');
-  if(heroLogo) heroLogo.addEventListener('click', adminClick);
+  const heroLogoRemoved = document.querySelector('.sidebar-brand');
+  // REMOVIDO: heroLogoRemoved click não abre mais painel - painel só embaixo
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -2291,7 +2274,7 @@ onAuthStateChanged(auth, async (user) => {
 
 
 <!-- ADMIN MODAL - 5 cliques na logo -->
-<div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
+<div id="REMOVED_adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
   <div style="background:#16231F; color:#fff; border-radius:18px; padding:24px; width:100%; max-width:380px;">
     <h3 style="margin:0; font-family:'Manrope'; font-size:14px;">👑 Painel do Dono</h3>
     <p style="margin:6px 0 0; font-size:11px; opacity:0.6;">Liberação com expiração automática • 5 cliques na logo</p>
@@ -2315,29 +2298,29 @@ onAuthStateChanged(auth, async (user) => {
   // Corrige closeAdmin que estava com display none mas modal tem flex
   const origCloseAdmin = window.closeAdmin;
   window.closeAdmin = function(){
-    const m = document.getElementById('adminModal');
+    const m = // removido
     if(m){ m.style.display='none'; }
     if(origCloseAdmin && origCloseAdmin!==window.closeAdmin){ try{origCloseAdmin();}catch(e){} }
   };
   // Fecha ao clicar fora do modal
   document.addEventListener('click', function(e){
-    const adminModal = document.getElementById('adminModal');
-    if(adminModal && e.target===adminModal){ adminModal.style.display='none'; }
+    const REMOVED_adminModal = // removido
+    if(REMOVED_adminModal && e.target===REMOVED_adminModal){ REMOVED_adminModal.style.display='none'; }
     const authModal = document.getElementById('authModal');
     if(authModal && e.target===authModal){ authModal.style.display='none'; }
   });
   // Tecla ESC fecha
   document.addEventListener('keydown', function(e){
     if(e.key==='Escape'){
-      const adminModal = document.getElementById('adminModal');
-      if(adminModal) adminModal.style.display='none';
+      const REMOVED_adminModal = // removido
+      if(REMOVED_adminModal) REMOVED_adminModal.style.display='none';
       const authModal = document.getElementById('authModal');
       if(authModal) authModal.style.display='none';
     }
   });
 
   // Painel do dono visível só para admin
-      window.checkOwnerPanel = function(userEmail){
+        window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
     if(!panel) return;
     if(!userEmail){ panel.style.display='none'; return; }
@@ -2347,6 +2330,7 @@ onAuthStateChanged(auth, async (user) => {
     if(isAdmin){
       panel.style.display='block';
       panel.style.visibility='visible';
+      panel.style.position='relative';
       if(typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
     } else {
       panel.style.display='none';
