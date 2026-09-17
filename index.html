@@ -207,7 +207,7 @@
   .invest-disclaimer .icon { color: #7A5416; flex-shrink: 0; margin-top: 1px; }
 
   /* ---------- tutorial / tour ---------- */
-  #tourHighlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(15,17,51,0.6); transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease; pointer-events: none; z-index: 9998; }
+  #tourHighlight { position: relative; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(15,17,51,0.6); transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease; pointer-events: none; z-index: 9998; }
   #tourCard { position: fixed; z-index: 9999; background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-card); padding: 18px 20px; width: 300px; max-width: calc(100vw - 32px); transition: top .2s ease, left .2s ease, bottom .2s ease; }
   #tourCard .tour-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; color: var(--primary); text-transform: uppercase; margin: 0 0 4px; }
   #tourCard h4 { margin: 0 0 8px; font-family: 'Manrope', sans-serif; font-size: 16px; font-weight: 600; }
@@ -362,24 +362,7 @@
       <div class="months-list" id="monthsBar"></div>
       <div class="month-add" id="monthAddWrap"></div>
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
-    <div id="ownerPanel" style="display:block; margin-top:16px; padding:14px; background:#16231F; border-radius:14px; color:#fff; border:2px solid #D1F25A;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; opacity:0.9;">👑 PAINEL DO DONO</span>
-        <span style="font-size:9px; opacity:0.6;">só você vê</span>
-      </div>
-      <input id="ownerEmailInput" type="email" placeholder="email do cliente que pagou" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:8px; outline:none;" />
-      <select id="ownerPlanSelect" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:10px; outline:none;">
-        <option value="essencial" style="color:#000;">Essencial - 30 dias - R$24,90</option>
-        <option value="trimestral" style="color:#000;">Trimestral - 90 dias - R$65,70</option>
-        <option value="completo" style="color:#000;">Completo - 30 dias - R$34,90</option>
-      </select>
-      <button onclick="liberarClienteOwner()" style="width:100%; padding:10px; border-radius:10px; background:#C5F277; color:#16231F; font-weight:800; font-size:12px; border:none; cursor:pointer;">Liberar acesso →</button>
-      <div id="ownerMsg" style="margin-top:8px; font-size:10px; opacity:0.8;"></div>
-      <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
-        <div style="font-size:10px; opacity:0.6; margin-bottom:6px;">Clientes recentes (free):</div>
-        <div id="ownerRecentList" style="max-height:120px; overflow-y:auto; font-size:11px;"></div>
-      </div>
-    </div>
+    
 
     </div>
 
