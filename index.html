@@ -355,6 +355,26 @@
       <p class="sidebar-label">Meses</p>
       <div class="months-list" id="monthsBar"></div>
       <div class="month-add" id="monthAddWrap"></div>
+    <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
+    <div id="ownerPanel" style="display:none; margin-top:16px; padding:14px; background:#16231F; border-radius:14px; color:#fff;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; opacity:0.9;">👑 PAINEL DO DONO</span>
+        <span style="font-size:9px; opacity:0.6;">só você vê</span>
+      </div>
+      <input id="ownerEmailInput" type="email" placeholder="email do cliente que pagou" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:8px; outline:none;" />
+      <select id="ownerPlanSelect" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:10px; outline:none;">
+        <option value="essencial" style="color:#000;">Essencial - 30 dias - R$24,90</option>
+        <option value="trimestral" style="color:#000;">Trimestral - 90 dias - R$65,70</option>
+        <option value="completo" style="color:#000;">Completo - 30 dias - R$34,90</option>
+      </select>
+      <button onclick="liberarClienteOwner()" style="width:100%; padding:10px; border-radius:10px; background:#C5F277; color:#16231F; font-weight:800; font-size:12px; border:none; cursor:pointer;">Liberar acesso →</button>
+      <div id="ownerMsg" style="margin-top:8px; font-size:10px; opacity:0.8;"></div>
+      <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:10px; opacity:0.6; margin-bottom:6px;">Clientes recentes (free):</div>
+        <div id="ownerRecentList" style="max-height:120px; overflow-y:auto; font-size:11px;"></div>
+      </div>
+    </div>
+
     </div>
 
     <div class="sidebar-footer">
@@ -687,7 +707,7 @@ function digitsToMoney(digits){
 }
 function wireMoneyField(el, onChange){
   const applyMask = (e) => {
-    const digits = e.target.value.replace(/\D/g, '');
+    const digits = e.target.value.replace(/[^0-9]/g, '');
     const { value, text } = digitsToMoney(digits);
     e.target.value = text;
     requestAnimationFrame(() => { try { e.target.setSelectionRange(e.target.value.length, e.target.value.length); } catch(err){} });
@@ -1211,7 +1231,7 @@ function renderIncome(){
           ${md.categories.map(c => `<option value="${c.id}" ${item.destinoCatId === c.id ? 'selected' : ''}>Destino: ${c.nome}</option>`).join('')}
         </select>
       ` : ''}
-      <input type="text" inputmode="decimal" class="money-input" value="${moneyStr(item.valor)}" data-inc="${item.id}" data-field="valor" />
+      <input type="text" inputmode="decimal" class="money-input" value="R$ ${moneyStr(item.valor)}" data-inc="${item.id}" data-field="valor" />
       <button class="pin-toggle${item.fixo ? ' active' : ''}" data-fixinc="${item.id}" title="${item.fixo ? 'Fixa — repete todo mês' : 'Marcar como fixa (repete no próximo mês)'}">${REPEAT_ICON}</button>
       <button class="ghost" data-delinc="${item.id}" aria-label="Remover entrada">&times;</button>
     `;
@@ -1291,7 +1311,7 @@ function renderCategories(){
     let itemsHtml = items.map(it => `
       <div class="line-item">
         <input type="text" value="${it.nome}" data-cat="${cat.id}" data-item="${it.id}" data-field="nome" placeholder="Descrição" />
-        <input type="text" inputmode="decimal" class="money-input" value="${moneyStr(it.valor)}" data-cat="${cat.id}" data-item="${it.id}" data-field="valor" />
+        <input type="text" inputmode="decimal" class="money-input" value="R$ ${moneyStr(it.valor)}" data-cat="${cat.id}" data-item="${it.id}" data-field="valor" />
         <button class="pin-toggle${it.fixo ? ' active' : ''}" data-fixitem="${cat.id}|${it.id}" title="${it.fixo ? 'Fixo — repete todo mês' : 'Marcar como fixo (repete no próximo mês)'}">${REPEAT_ICON}</button>
         <button class="ghost" data-delitem="${cat.id}|${it.id}" aria-label="Remover lançamento">&times;</button>
       </div>
@@ -2240,6 +2260,112 @@ onAuthStateChanged(auth, async (user) => {
     <button onclick="closeAdmin()" style="margin-top:16px; width:100%; background:transparent; border:none; color:rgba(255,255,255,0.6); font-size:11px; cursor:pointer;">Fechar</button>
   </div>
 </div>
+
+
+<script>
+// FIX: Fechar popups ao clicar no X ou fora
+(function(){
+  // Corrige closeAdmin que estava com display none mas modal tem flex
+  const origCloseAdmin = window.closeAdmin;
+  window.closeAdmin = function(){
+    const m = document.getElementById('adminModal');
+    if(m){ m.style.display='none'; }
+    if(origCloseAdmin && origCloseAdmin!==window.closeAdmin){ try{origCloseAdmin();}catch(e){} }
+  };
+  // Fecha ao clicar fora do modal
+  document.addEventListener('click', function(e){
+    const adminModal = document.getElementById('adminModal');
+    if(adminModal && e.target===adminModal){ adminModal.style.display='none'; }
+    const authModal = document.getElementById('authModal');
+    if(authModal && e.target===authModal){ authModal.style.display='none'; }
+  });
+  // Tecla ESC fecha
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      const adminModal = document.getElementById('adminModal');
+      if(adminModal) adminModal.style.display='none';
+      const authModal = document.getElementById('authModal');
+      if(authModal) authModal.style.display='none';
+    }
+  });
+
+  // Painel do dono visível só para admin
+  window.checkOwnerPanel = function(userEmail){
+    const panel = document.getElementById('ownerPanel');
+    if(!panel) return;
+    const adminEmails = ["douglasmiguel571@gmail.com", "douglas.mll", "deimports_sp"];
+    const isAdmin = userEmail && adminEmails.some(a=> userEmail.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(userEmail.toLowerCase()) || userEmail.toLowerCase()===a.toLowerCase());
+    // Também verifica se é admin pelo Firebase (role)
+    if(isAdmin || window.currentUserIsAdmin){
+      panel.style.display='block';
+      loadRecentFreeUsers();
+    } else {
+      panel.style.display='none';
+    }
+  };
+
+  window.liberarClienteOwner = async function(){
+    const email = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
+    const plan = document.getElementById('ownerPlanSelect').value;
+    const msg = document.getElementById('ownerMsg');
+    if(!email){ msg.textContent='Digite o e-mail'; return; }
+    msg.textContent='Liberando...';
+    try{
+      if(typeof window.liberarCliente==='function'){
+        // Usa função existente se disponível
+        const origInput = document.getElementById('adminEmailInput');
+        const origSelect = document.getElementById('adminPlanSelect');
+        if(origInput) origInput.value=email;
+        if(origSelect) origSelect.value=plan;
+        await window.liberarCliente();
+        msg.textContent='✅ Liberado! '+email;
+        document.getElementById('ownerEmailInput').value='';
+        setTimeout(()=>msg.textContent='',3000);
+        loadRecentFreeUsers();
+      } else {
+        msg.textContent='Função de liberação não encontrada';
+      }
+    }catch(err){
+      msg.textContent='Erro: '+err.message;
+    }
+  };
+
+  async function loadRecentFreeUsers(){
+    const list = document.getElementById('ownerRecentList');
+    if(!list) return;
+    try{
+      if(window.db && window.db.collection){
+        // v9 modular já tem getDocs etc, tenta pegar users free
+        // Fallback: não carrega se não tiver permissão
+      }
+      list.innerHTML='<div style="opacity:0.5; font-size:10px;">Abra o modal 👑 (5 cliques na logo) para ver lista completa</div>';
+    }catch(e){
+      list.innerHTML='';
+    }
+  }
+
+  // Garante que R$ não quebra a máscara de dinheiro
+  const originalDigitsToMoney = window.digitsToMoney;
+  if(originalDigitsToMoney){
+    window.digitsToMoney = function(digits){
+      // Remove R$ e tudo que não é dígito
+      const clean = (digits+'').replace(/[^0-9]/g,'');
+      return originalDigitsToMoney(clean);
+    };
+  }
+
+  // Intercepta render para garantir painel aparece após login
+  const originalRenderAll = window.renderAll;
+  if(originalRenderAll){
+    window.renderAll = function(){
+      originalRenderAll();
+      if(window.currentUser && window.currentUser.email){
+        setTimeout(()=>window.checkOwnerPanel(window.currentUser.email), 100);
+      }
+    };
+  }
+})();
+</script>
 
 </body>
 </html>
