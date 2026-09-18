@@ -218,7 +218,7 @@
   #tourCard button.tour-skip { border: none; background: transparent; color: var(--ink-faint); font-size: 12px; padding: 0; height: auto; font-weight: 500; }
   #tourCard button.tour-skip:hover { color: var(--brick); background: transparent; }
   #tourCard button.tour-prev, #tourCard button.tour-next { height: 32px; padding: 0 14px; font-size: 12.5px; }
-  #tourFab { position: fixed; bottom: 22px; right: 22px; width: 46px; height: 46px; border-radius: 99px; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-card); z-index: 500; }
+  #tourFab { position: fixed; bottom: 22px; right: 22px; display:flex; width: 46px; height: 46px; border-radius: 99px; background: var(--primary); border: none; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-card); z-index: 500; }
   #tourFab:hover { background: var(--primary-dark); }
   @media (max-width: 760px) { #tourCard { width: 260px; } }
   .profile-card .active-badge { position: absolute; top: 14px; right: 14px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; color: var(--teal); background: var(--teal-soft); padding: 3px 9px; border-radius: 99px; }
@@ -370,9 +370,8 @@
       </div>
       <input id="ownerEmailInput" type="email" placeholder="email do cliente que pagou" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:8px; outline:none;" />
       <select id="ownerPlanSelect" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; font-size:12px; margin-bottom:10px; outline:none;">
-        <option value="essencial" style="color:#000;">Essencial - 30 dias - R$24,90</option>
-        <option value="trimestral" style="color:#000;">Trimestral - 90 dias - R$65,70</option>
-        <option value="completo" style="color:#000;">Completo - 30 dias - R$34,90</option>
+        <option value="essencial" style="color:#000;">1 Mês - R$24,90</option>
+        <option value="trimestral" style="color:#000;">3 Meses - R$65,70</option>
       </select>
       <button onclick="liberarClienteOwner()" style="width:100%; padding:10px; border-radius:10px; background:#C5F277; color:#16231F; font-weight:800; font-size:12px; border:none; cursor:pointer;">Liberar acesso →</button>
       <div id="ownerMsg" style="margin-top:8px; font-size:10px; opacity:0.8;"></div>
@@ -385,7 +384,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <div class="sidebar-actions" id="heroActions" style="display:none;">
+      <div class="sidebar-actions" id="heroActions" style="display:none !important;" style="display:none;">
         <button id="tourBtn" title="Ver tutorial">
           <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 1.7-2.3 3.5"/><path d="M12 17h.01"/></svg>
         </button>
@@ -672,7 +671,7 @@
     </div>
   </div>
 </div>
-<button id="tourFab" title="Ver tutorial" style="display:none;">
+<button id="tourFab" title="Ver tutorial" style="display:flex;">
   <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 1.7-2.3 3.5"/><path d="M12 17h.01"/></svg>
 </button>
 
@@ -1372,7 +1371,7 @@ function renderCategories(){
   }
 
   md.categories.forEach(cat => {
-    const items = cat.items || [];
+    const items = (cat.items || []).slice().sort((a,b)=> (b.valor||0) - (a.valor||0));
     const baseLimit = regularIncome(md) * (cat.pct||0) / 100;
     const extraForCat = extraIncomeForCategory(md, cat.id);
     const limite = baseLimit + extraForCat;
