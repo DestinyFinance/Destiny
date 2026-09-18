@@ -1379,7 +1379,7 @@ function renderCategories(){
     const limite = baseLimit + extraForCat;
     const gastoReal = (items || []).filter(i=>!i.reservado).reduce((s,i)=>s+(i.valor||0),0);
     const gastoReservado = (items || []).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
-    const gasto = gastoReal;
+    const gasto = gastoReal + gastoReservado;
     const st = limitStatus(limite, gasto, cat.tipo);
     const lbl = fieldLabels(cat.tipo);
     const barWidth = Math.min(st.pct * 100, 100);
@@ -1390,7 +1390,7 @@ function renderCategories(){
       <div class="line-item" style="${it.reservado ? 'background:#E8F5F0; border-radius:10px; padding:2px 4px;' : ''}">
         <input type="text" value="${it.nome}" data-cat="${cat.id}" data-item="${it.id}" data-field="nome" placeholder="Descrição" />
         <input type="text" inputmode="decimal" class="money-input" value="R$ ${moneyStr(it.valor)}" data-cat="${cat.id}" data-item="${it.id}" data-field="valor" />
-        <button class="pin-toggle${it.reservado ? ' active' : ''}" data-reservado="${cat.id}|${it.id}" title="${it.reservado ? 'Reservado — conta em Investimentos' : 'Marcar como reservado (conta em Investimentos)'}" style="${it.reservado ? 'background:#1F4B3D; color:#fff; border-color:#1F4B3D;' : ''}">${it.reservado ? '💰' : 'R$'}</button>
+        <button class="pin-toggle${it.reservado ? ' active' : ''}" data-reservado="${cat.id}|${it.id}" title="${it.reservado ? 'Reservado — já está contando em Investimentos' : 'Clique: desconta de Lazer e soma em Investimentos'}" style="${it.reservado ? 'background:#1F4B3D; color:#fff; border-color:#1F4B3D;' : ''}">${it.reservado ? '💰' : 'R$'}</button>
         <button class="pin-toggle${it.fixo ? ' active' : ''}" data-fixitem="${cat.id}|${it.id}" title="${it.fixo ? 'Fixo — repete todo mês' : 'Marcar como fixo (repete no próximo mês)'}">${REPEAT_ICON}</button>
         <button class="ghost" data-delitem="${cat.id}|${it.id}" aria-label="Remover lançamento">&times;</button>
       </div>
@@ -1416,7 +1416,7 @@ function renderCategories(){
       <div class="cat-sub">
         <div class="field"><label>${lbl.pctLabel}</label><input type="number" min="0" max="100" value="${cat.pct}" data-catmeta="${cat.id}" data-field="pct" /></div>
         <span class="tag ${cat.tipo}">${cat.tipo}</span>
-        <span class="meta-hint"><span class="mh-label">${lbl.hintLimit}</span>: ${fmt(limite)}${extraHint} · <span class="mh-label">${lbl.hintDone}</span>: ${fmt(gasto)} · <span class="mh-label">sobra</span>: <span style="color:${sobraColor}; font-weight:600;">${fmt(sobra)}</span></span>
+        <span class="meta-hint"><span class="mh-label">${lbl.hintLimit}</span>: ${fmt(limite)}${extraHint} · <span class="mh-label">${lbl.hintDone}</span>: ${fmt(gasto)}${gastoReservado>0 ? ` (R$${moneyStr(gastoReal)} gasto + R$${moneyStr(gastoReservado)} reservado)` : ''} · <span class="mh-label">sobra</span>: <span style="color:${sobraColor}; font-weight:600;">${fmt(sobra)}</span></span>
       </div>
       <div class="bar"><div style="width:${barWidth}%; background:${st.color};"></div></div>
       <p class="status" style="color:${st.textColor};">${st.text}</p>
@@ -1465,6 +1465,16 @@ function renderCategories(){
       item.fixo = !item.fixo;
       saveData();
       renderAll(true);
+    });
+  });
+  list.querySelectorAll('button[data-reservado]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const [catId, itemId] = e.currentTarget.dataset.reservado.split('|');
+      const cat = md.categories.find(c => c.id === catId);
+      const item = cat.items.find(i => i.id === itemId);
+      item.reservado = !item.reservado;
+      saveData();
+      renderAll();
     });
   });
   list.querySelectorAll('button[data-delitem]').forEach(btn => {
