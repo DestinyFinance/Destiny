@@ -287,31 +287,7 @@
   setTimeout(removeLocks, 2000);
   
   // Sobrescreve checkTrialAccess global
-  
-  // NOVA LOGICA: trial expirado NAO bloqueia login, apenas redireciona para Assinar Plano
-  window.checkTrialAccess = async function(){
-    try{
-      // Se não tem perfil, deixa passar (primeira pagina é login)
-      if(!data || !data.profile) return true;
-      // Aqui entraria logica de data de expiração - por enquanto sempre libera
-      // Quando expirar, mostra popup e vai para viewPlans
-      const trialExpired = false; // MUDE para true quando quiser ativar trava
-      if(trialExpired){
-        // Mostra modal e direciona para aba Assinar Plano
-        setTimeout(()=>{
-          if(confirm('Seu teste grátis acabou.
-
-Quer ver os planos para continuar?')){
-            activeView='plans';
-            applyView();
-          }
-        }, 800);
-        return false;
-      }
-      return true;
-    }catch(e){ return true; }
-  };
-
+  window.checkTrialAccess = async function(){ return true; };
 })();
 </script>
 
@@ -583,93 +559,37 @@ Quer ver os planos para continuar?')){
 </div>
 
 
-      
-      
       <div id="viewPlans" style="display:none;">
-        <div style="max-width:1100px; margin:0 auto;">
-          <h2 style="font-size:32px; font-weight:900; margin-bottom:8px; font-family:Manrope, sans-serif; text-align:center;">Escolha seu plano</h2>
-          <p style="opacity:.7; margin-bottom:32px; font-size:15px; line-height:1.5; text-align:center;">Comece grátis. Evolua quando seu controle pedir mais meses.</p>
-          
-          <div style="display:flex; flex-direction:row; gap:20px; justify-content:center; align-items:stretch; flex-wrap:wrap;">
-            
-            <!-- GRATIS -->
-            <div style="flex:1; min-width:280px; max-width:340px; border:1.5px solid #e5e7eb; border-radius:24px; padding:0; background:#fff; color:#111; overflow:hidden; display:flex; flex-direction:column;">
-              <div style="padding:24px 24px 0; text-align:center;">
-                <h3 style="font-size:18px; font-weight:700; margin:0; color:#0f5e4d;">Grátis</h3>
-                <div style="margin:16px auto; width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,#E0F2EC,#C5E8DD); border:3px solid #0f5e4d20; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-                  <span style="font-size:32px; font-weight:900; color:#0f5e4d; line-height:1;">R$0</span>
-                  <span style="font-size:11px; opacity:.6;">/mês</span>
-                </div>
-              </div>
-              <div style="background:#E8F5F0; padding:18px 20px; flex:1; display:flex; flex-direction:column;">
-                <ul style="list-style:none; padding:0; margin:0 0 18px; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.4;">
-                  <li style="display:flex; gap:8px;"><span style="color:#0f5e4d;">✔</span> 1 mês ativo</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#0f5e4d;">✔</span> Categorias ilimitadas</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#0f5e4d;">✔</span> Visão Geral e Distribuição por %</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#0f5e4d;">✔</span> Gráficos e tabela completa</li>
-                  <li style="display:flex; gap:8px; opacity:.6;"><span>⚠️</span> Dados salvos localmente</li>
-                </ul>
-                <div style="background:#fff; border-radius:10px; padding:10px 12px; font-size:11px; line-height:1.4; margin-bottom:16px; border:1px solid #d1e7de;">
-                  <strong>Vantagem:</strong> Teste real sem limite de categorias. O limite é só o mês.
-                </div>
-                <button onclick="activeView='month'; applyView();" style="margin-top:auto; width:100%; background:#0f5e4d; color:#fff; border:none; padding:12px; border-radius:999px; font-weight:800; cursor:pointer; font-size:13px;">COMEÇAR GRÁTIS</button>
-              </div>
+        <div style="max-width:1120px; margin:0 auto; padding:0 12px;">
+          <div style="text-align:center; margin-bottom:32px;">
+            <h2 style="font-size:32px; font-weight:900; font-family:Manrope, sans-serif; margin:0;">Escolha seu plano</h2>
+            <p style="opacity:.7; margin-top:8px;">Comece grátis. O limite é só o mês, não as categorias.</p>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; align-items:stretch;">
+            <div style="background:#fff; border:1.5px solid #e5e7eb; border-radius:20px; padding:24px; display:flex; flex-direction:column;">
+              <h3 style="margin:0; font-size:18px; font-weight:800; text-align:center;">Gratis</h3>
+              <div style="text-align:center; margin:16px 0;"><div style="width:120px; height:120px; margin:0 auto; border-radius:50%; background:#E8F5F0; display:flex; align-items:center; justify-content:center; flex-direction:column; border:3px solid #1F4B3D15;"><span style="font-size:36px; font-weight:900; color:#1F4B3D;">R$0</span><span style="font-size:12px; opacity:.6;">/mes</span></div></div>
+              <ul style="list-style:none; padding:0; margin:0 0 16px; font-size:13px; line-height:1.8;"><li>✔ 1 mes ativo</li><li>✔ Categorias ilimitadas</li><li>✔ Visao Geral completa</li><li>✔ Tabela de distribuicao %</li><li>✔ Graficos</li><li style="opacity:.6;">⚠️ Dados locais</li></ul>
+              <div style="background:#F6F9F8; border-radius:12px; padding:10px; font-size:11px; margin-bottom:16px;"><b>Vantagem:</b> Teste real sem limite de categorias. Limite e so o mes.</div>
+              <button onclick="activeView='month'; applyView();" style="margin-top:auto; width:100%; padding:12px; border-radius:999px; background:#fff; border:1.5px solid #111; font-weight:800; cursor:pointer;">COMECAR GRATIS</button>
             </div>
-
-            <!-- MENSAL -->
-            <div style="flex:1; min-width:280px; max-width:340px; border:2px solid #1F4B3D; border-radius:24px; padding:0; background:#fff; color:#111; overflow:hidden; display:flex; flex-direction:column; transform:translateY(-8px); box-shadow:0 16px 40px rgba(31,75,61,.15);">
-              <div style="background:#1F4B3D; color:#fff; text-align:center; padding:8px; font-size:11px; font-weight:800; letter-spacing:.5px;">MAIS ESCOLHIDO</div>
-              <div style="padding:20px 24px 0; text-align:center;">
-                <h3 style="font-size:18px; font-weight:700; margin:0; color:#1F4B3D;">Mensal</h3>
-                <div style="margin:16px auto; width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,#1F4B3D,#2a6b56); border:3px solid #1F4B3D20; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-                  <span style="font-size:32px; font-weight:900; color:#fff; line-height:1;">R$24,90</span>
-                  <span style="font-size:11px; opacity:.7; color:#C5D6D0;">/mês</span>
-                </div>
-              </div>
-              <div style="background:#F0F6F3; padding:18px 20px; flex:1; display:flex; flex-direction:column;">
-                <ul style="list-style:none; padding:0; margin:0 0 18px; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.4;">
-                  <li style="display:flex; gap:8px;"><span style="color:#1F4B3D;">✔</span> <strong>Meses ilimitados</strong></li>
-                  <li style="display:flex; gap:8px;"><span style="color:#1F4B3D;">✔</span> <strong>Categorias ilimitadas</strong></li>
-                  <li style="display:flex; gap:8px;"><span style="color:#1F4B3D;">✔</span> Sincronização na nuvem</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#1F4B3D;">✔</span> Acesso em qualquer aparelho</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#1F4B3D;">✔</span> Suporte por e-mail</li>
-                </ul>
-                <div style="background:#fff; border-radius:10px; padding:10px 12px; font-size:11px; line-height:1.4; margin-bottom:16px; border:1px solid #d1e7de;">
-                  <strong>Vantagem:</strong> Liberdade total. Cancele quando quiser, com tudo salvo na nuvem.
-                </div>
-                <a href="https://mpago.la/2CiRAfx" target="_blank" style="margin-top:auto; display:block; text-align:center; background:#1F4B3D; color:#fff; padding:12px; border-radius:999px; font-weight:800; text-decoration:none; font-size:13px;">ASSINAR MENSAL</a>
-              </div>
+            <div style="background:#111; border:2px solid #D1F25A; border-radius:20px; padding:24px; display:flex; flex-direction:column; color:#fff; position:relative;">
+              <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); background:#D1F25A; color:#000; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:900;">MAIS POPULAR</div>
+              <h3 style="margin:0; font-size:18px; font-weight:800; text-align:center; color:#fff;">Mensal</h3>
+              <div style="text-align:center; margin:16px 0;"><div style="width:120px; height:120px; margin:0 auto; border-radius:50%; background:#1a1a1a; border:3px solid #D1F25A40; display:flex; align-items:center; justify-content:center; flex-direction:column;"><span style="font-size:30px; font-weight:900; color:#D1F25A;">R$24,90</span><span style="font-size:11px; opacity:.6; color:#fff;">/mes</span></div></div>
+              <ul style="list-style:none; padding:0; margin:0 0 16px; font-size:13px; line-height:1.8; color:#ddd;"><li>✔ Meses ilimitados</li><li>✔ Categorias ilimitadas</li><li>✔ Sincronizacao na nuvem</li><li>✔ Acesso em qualquer aparelho</li><li>✔ Suporte por e-mail</li></ul>
+              <div style="background:rgba(209,242,90,.15); border-radius:12px; padding:10px; font-size:11px; margin-bottom:16px; color:#D1F25A;"><b>Vantagem:</b> <span style="color:#fff;">Tudo ilimitado com nuvem. Cancele quando quiser.</span></div>
+              <a href="https://mpago.la/2CiRAfx" target="_blank" style="margin-top:auto; display:block; text-align:center; background:#D1F25A; color:#000; padding:12px; border-radius:999px; font-weight:900; text-decoration:none;">ASSINAR MENSAL</a>
             </div>
-
-            <!-- TRIMESTRAL -->
-            <div style="flex:1; min-width:280px; max-width:340px; border:1.5px solid #e5e7eb; border-radius:24px; padding:0; background:#fff; color:#111; overflow:hidden; display:flex; flex-direction:column;">
-              <div style="padding:24px 24px 0; text-align:center;">
-                <h3 style="font-size:18px; font-weight:700; margin:0; color:#b85c8a;">Trimestral</h3>
-                <div style="margin:16px auto; width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,#FFE0EC,#FFC2D6); border:3px solid #b85c8a20; display:flex; align-items:center; justify-content:center; flex-direction:column;">
-                  <span style="font-size:28px; font-weight:900; color:#b85c8a; line-height:1;">R$65,70</span>
-                  <span style="font-size:10px; opacity:.7;">equivale R$21,90/mês</span>
-                </div>
-                <div style="background:#D1F25A; color:#000; display:inline-block; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:900; margin-top:4px;">-12% OFF</div>
-              </div>
-              <div style="background:#FFF0F5; padding:18px 20px; flex:1; display:flex; flex-direction:column;">
-                <ul style="list-style:none; padding:0; margin:0 0 18px; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.4;">
-                  <li style="display:flex; gap:8px;"><span style="color:#b85c8a;">✔</span> Tudo do Mensal</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#b85c8a;">✔</span> <strong>Economia de R$9</strong></li>
-                  <li style="display:flex; gap:8px;"><span style="color:#b85c8a;">✔</span> 3 meses sem se preocupar</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#b85c8a;">✔</span> Pagamento único trimestral</li>
-                  <li style="display:flex; gap:8px;"><span style="color:#b85c8a;">✔</span> Selo de apoiador</li>
-                </ul>
-                <div style="background:#fff; border-radius:10px; padding:10px 12px; font-size:11px; line-height:1.4; margin-bottom:16px; border:1px solid #ffd6e3;">
-                  <strong>Vantagem:</strong> Melhor custo-benefício. Pague menos por mês e garanta foco por 3 meses.
-                </div>
-                <a href="https://mpago.la/2CiRAfx" target="_blank" style="margin-top:auto; display:block; text-align:center; background:#b85c8a; color:#fff; padding:12px; border-radius:999px; font-weight:800; text-decoration:none; font-size:13px;">ASSINAR TRIMESTRAL</a>
-              </div>
+            <div style="background:#fff; border:1.5px solid #e5e7eb; border-radius:20px; padding:24px; display:flex; flex-direction:column;">
+              <h3 style="margin:0; font-size:18px; font-weight:800; text-align:center;">Trimestral</h3>
+              <div style="text-align:center; margin:16px 0;"><div style="width:120px; height:120px; margin:0 auto; border-radius:50%; background:#FFF0F5; display:flex; align-items:center; justify-content:center; flex-direction:column; border:3px solid #ffb3c615;"><span style="font-size:28px; font-weight:900;">R$65,70</span><span style="font-size:10px; opacity:.6;">R$21,90/mes</span></div><span style="background:#D1F25A; color:#000; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:900; display:inline-block; margin-top:8px;">-12% OFF</span></div>
+              <ul style="list-style:none; padding:0; margin:0 0 16px; font-size:13px; line-height:1.8;"><li>✔ Tudo do Mensal</li><li>✔ Economia de R$9 no trimestre</li><li>✔ 3 meses sem preocupacao</li><li>✔ Pagamento unico trimestral</li><li>✔ Selo de apoiador</li></ul>
+              <div style="background:#F9FAFB; border-radius:12px; padding:10px; font-size:11px; margin-bottom:16px;"><b>Vantagem:</b> Melhor custo-beneficio. Pague menos por mes e garanta 3 meses de foco.</div>
+              <a href="https://mpago.la/2CiRAfx" target="_blank" style="margin-top:auto; display:block; text-align:center; background:#111; color:#fff; padding:12px; border-radius:999px; font-weight:800; text-decoration:none;">ASSINAR TRIMESTRAL</a>
             </div>
-
           </div>
         </div>
-      </div>
-
 
       <div id="viewAbout" style="display:none;">
         <div style="max-width:760px;">
@@ -764,7 +684,7 @@ setPersistence(auth, inMemoryPersistence).catch((e) => console.error('Erro ao co
 
 let currentUser = null;
 let authMode = 'login'; // 'login' | 'signup'
-let activeView = 'profile'; // 'overview' | 'month' | 'profile'
+let activeView = 'overview'; // 'overview' | 'month' | 'profile'
 
 const STORAGE_KEY = 'finance-app-data-v3';
 let data = null;
