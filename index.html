@@ -266,52 +266,12 @@
   .lock-wrap p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.6; margin: 0 0 1.4rem; }
   .lock-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--brick-soft); color: var(--brick); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
 </style>
-
-<style>
-#trialLockScreen { display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important; position:absolute !important; left:-9999px !important; }
-</style>
-<script>
-(function(){
-  // Remove lock imediatamente
-  const removeLock = () => {
-    const lock = document.getElementById('trialLockScreen');
-    if(lock){ lock.style.display='none'; lock.remove(); }
-    const appRoot = document.getElementById('appRoot');
-    const authGate = document.getElementById('authGate');
-    // Se tem usuário logado, mostra appRoot
-    if(appRoot && authGate){
-      // Não força aqui, deixa onAuth decidir, mas garante que lock não aparece
-    }
-  };
-  removeLock();
-  setTimeout(removeLock, 500);
-  setTimeout(removeLock, 2000);
-  
-  // Sobrescreve checkTrialAccess global
-  window.checkTrialAccess = async function(user){
-    console.log('BYPASS TOTAL - liberado', user ? user.email : 'sem user');
-    const lock = document.getElementById('trialLockScreen');
-    if(lock){ lock.style.display='none'; try{ lock.remove(); }catch(e){} }
-    return true;
-  };
-})();
-</script>
-
 </head>
 <body>
 
 <div class="wrap sr-only"><h2>Painel de controle financeiro pessoal com login por e-mail e senha, sincronização na nuvem, categorias independentes por mês com limite ou meta por percentual, tabela de distribuição e visão geral acumulada por mês e por categoria</h2></div>
 
-<div id="trialLockScreen" style="display:none !important;" style="display:none;" class="auth-shell">
-  <div class="lock-wrap">
-    <div class="lock-icon">
-      <svg class="icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-    </div>
-    <h1>Seu período de teste terminou</h1>
-    <p id="lockMessage">Você usou os 30 dias gratuitos do Destiny. Para continuar acessando seus dados e lançamentos, entre em contato para ativar sua assinatura.</p>
-    <button class="primary" id="lockLogoutBtn" style="width:100%; height:40px;">Sair</button>
-  </div>
-</div>
+
 
 <div id="authGate">
   <div class="auth-shell">
@@ -426,7 +386,7 @@
       </div>
     </header>
 
-    <div id="trialBanner" style="display:none;"></div>
+    <div id="trialBanner" style="display:none !important;" style="display:none;"></div>
 
     <div class="wrap">
 
@@ -1624,88 +1584,28 @@ function renderAll(skipMonthsBar){
 
 async function deleteCurrentMonth(){
   try{
-    console.log('=== DELETE INICIADO ===');
-    console.log('currentMonth antes:', currentMonth);
-    console.log('todos meses antes:', Object.keys(data.months));
-    console.log('perfil antes:', data.profile);
-
-    const months = Object.keys(data.months || {});
-    if (months.length <= 1) {
-      alert('Não é possível apagar o único mês existente.');
-      return;
-    }
-
-    // Protege perfil
-    const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
-    
-    const md = currentMonthData();
-    const totalInc = (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
-    const totalExp = (md.categories||[]).reduce((s,c)=> s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0);
-    const totalCount = (md.incomeItems||[]).length + (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
-
-    let msg = '';
-    if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
-      msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
-
-• ${totalCount} lançamento(s)
-• Receitas: R$ ${totalInc.toFixed(2).replace('.',',')}
-• Despesas: R$ ${totalExp.toFixed(2).replace('.',',')}
-
-Apagar APENAS este mês?
-Os outros meses e o PERFIL serão mantidos.`;
-    } else {
-      msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
-Os outros meses e o perfil NÃO serão apagados.`;
-    }
-
-    if (!confirm(msg)) {
-      console.log('Cancelado pelo usuário');
-      return;
-    }
-
+    const allMonths = Object.keys(data.months || {});
+    if(allMonths.length <= 1){ alert('Não é possível apagar o único mês existente.'); return; }
     const deletedYm = currentMonth;
-    const remainingKeys = months.filter(m=> m !== deletedYm);
-    
-    console.log('Deletando APENAS:', deletedYm);
-    console.log('Mantendo:', remainingKeys);
-
-    // Remove APENAS 1 mês
+    if(!deletedYm || !data.months[deletedYm]){ alert('Mês não encontrado.'); return; }
+    const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
+    const monthsBackup = JSON.parse(JSON.stringify(data.months));
+    const md = currentMonthData();
+    const incCount = (md.incomeItems||[]).length;
+    const expCount = (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
+    if(!confirm(`Apagar APENAS o mês ${monthLabelLong(deletedYm)}? Serão mantidos: ${allMonths.filter(m=>m!==deletedYm).map(m=>monthLabelLong(m)).join(', ')} e seu perfil. Tem certeza?`)) return;
     delete data.months[deletedYm];
-    
-    // Restaura perfil caso tenha sido afetado
     data.profile = profileBackup;
-    
-    // Define novo mês atual
-    const sortedRemaining = remainingKeys.sort();
-    const prevMonths = sortedRemaining.filter(m => m < deletedYm);
-    currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : sortedRemaining[sortedRemaining.length - 1];
-
-    console.log('currentMonth depois:', currentMonth);
-    console.log('todos meses depois:', Object.keys(data.months));
-    console.log('perfil depois:', data.profile);
-
+    if(Object.keys(data.months).length === 0){ data.months = monthsBackup; alert('Erro: operação bloqueada para proteger seus dados.'); return; }
+    const remaining = Object.keys(data.months).sort();
+    const prev = remaining.filter(m=> m < deletedYm);
+    currentMonth = prev.length ? prev[prev.length-1] : remaining[remaining.length-1];
     await persistNow();
-    
-    // Força recarregar do Firebase para garantir que não apagou tudo
-    try{
-      if(typeof loadFromFirebase === 'function'){
-        // não recarrega tudo, só renderiza
-      }
-    }catch(e){}
-
     renderAll();
-    
-    alert(`✅ Mês ${monthLabelLong(deletedYm)} excluído!
-
-Mantidos: ${remainingKeys.map(m=>monthLabelLong(m)).join(', ')}
-Perfil mantido.`);
-    
-  }catch(err){
-    console.error('Erro ao deletar:', err);
-    alert('Erro ao apagar mês: ' + err.message + '
-Recarregue a página.');
-  }
+    alert(`✅ ${monthLabelLong(deletedYm)} apagado!`);
+  }catch(e){ console.error('Erro delete:', e); alert('Erro ao apagar: ' + e.message); }
 }
+
 
 
 
@@ -2237,8 +2137,8 @@ checkTrialAccess = async function(user){
 
 
 
-// ADMIN - 
-// admin logo desativado
+// ADMIN - 5 cliques na logo
+// sem modal logo
 function closeAdmin(){ document.getElementById('REMOVED').style.display='none'; }
 async function liberarCliente(){
   const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
@@ -2274,8 +2174,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   if (user) {
-    const allowed = true; // FORÇADO ABERTO - bypass total
-    console.log('BYPASS - liberando acesso');
+    console.log('Site aberto - sem trava');
     document.getElementById('trialLockScreen').style.display = 'none';
     document.getElementById('authGate').style.display = 'none';
     document.getElementById('appRoot').style.display = 'flex';
@@ -2306,11 +2205,11 @@ onAuthStateChanged(auth, async (user) => {
 </script>
 
 
-<!-- ADMIN MODAL -  -->
+<!-- ADMIN MODAL - 5 cliques na logo -->
 <div id="REMOVED" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:16px;">
   <div style="background:#16231F; color:#fff; border-radius:18px; padding:24px; width:100%; max-width:380px;">
     <h3 style="margin:0; font-family:'Manrope'; font-size:14px;">👑 Painel do Dono</h3>
-    <p style="margin:6px 0 0; font-size:11px; opacity:0.6;">Painel do Dono - só você vê 👑</p>
+    <p style="margin:6px 0 0; font-size:11px; opacity:0.6;">Liberação com expiração automática • 5 cliques na logo</p>
     <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">
       <input id="adminEmailInput" placeholder="email que pagou" style="width:100%; height:38px; border-radius:999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:0 14px;"/>
       <select id="adminPlanSelect" style="width:100%; height:38px; border-radius:999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:0 14px;">
@@ -2355,18 +2254,12 @@ onAuthStateChanged(auth, async (user) => {
   // Painel do dono visível só para admin
         window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
-    if(!panel){ console.log('ownerPanel não encontrado'); return; }
+    if(!panel) return;
     if(!userEmail){ panel.style.display='none'; return; }
     const lower = userEmail.toLowerCase().trim();
     const isAdmin = lower === "douglasmiguel571@gmail.com";
-    console.log('checkOwnerPanel', userEmail, isAdmin);
-    if(isAdmin){
-      panel.style.display='block';
-      panel.style.visibility='visible';
-      if(typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
-    } else {
-      panel.style.display='none';
-    }
+    panel.style.display = isAdmin ? 'block' : 'none';
+    if(isAdmin && typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
   };
 
 
@@ -2404,7 +2297,7 @@ onAuthStateChanged(auth, async (user) => {
         // v9 modular já tem getDocs etc, tenta pegar users free
         // Fallback: não carrega se não tiver permissão
       }
-      list.innerHTML='<div style="opacity:0.5; font-size:10px;">Abra o modal 👑 () para ver lista completa</div>';
+      list.innerHTML='<div style="opacity:0.5; font-size:10px;">Abra o modal 👑 (5 cliques na logo) para ver lista completa</div>';
     }catch(e){
       list.innerHTML='';
     }
@@ -2564,24 +2457,6 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const navPlans = document.getElementById('navPlans');
-  if(navPlans){
-    navPlans.addEventListener('click', function(e){
-      e.preventDefault();
-      window.activeView='plans';
-      document.querySelectorAll('#profileView, #overviewView, #monthView, #view-month, #plansView').forEach(el=>{ if(el) el.style.display='none'; });
-      const p = document.getElementById('plansView');
-      if(p) p.style.display='block';
-      document.querySelectorAll('.side-nav-item').forEach(b=>b.classList.remove('active'));
-      navPlans.classList.add('active');
-    });
-  }
-});
-</script>
-
-
 <div id="plansView" class="view" style="display:none; padding:24px;">
   <div style="max-width:900px; margin:0 auto;">
     <h2 style="font-size:28px; font-weight:800; margin-bottom:8px; color:#111;">Escolha seu plano</h2>
@@ -2617,7 +2492,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
     <div style="margin-top:24px; padding:16px; background:#f3f4f6; border-radius:12px; text-align:center;">
-      <p style="font-size:13px; color:#666;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
+      <p style="font-size:13px; color:#666;">Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
     </div>
   </div>
 </div>
