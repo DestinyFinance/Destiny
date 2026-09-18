@@ -845,10 +845,15 @@ async function loadData(){
 }
 
 async function persistNow(){
-  if (!currentUser) return;
+  if (!currentUser) { console.log('persistNow sem currentUser'); return; }
   try {
-    await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(data), updatedAt: Date.now() });
-  } catch(e) { console.error('Erro ao salvar', e); }
+    console.log('Salvando...', Object.keys(data.months||{}).length, 'meses');
+    await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(data), updatedAt: Date.now() }, { merge: true });
+    console.log('Salvo com sucesso');
+  } catch(e) { 
+    console.error('Erro ao salvar', e); 
+    alert('Erro ao salvar no Firebase: ' + e.message + '\nVerifique as regras do Firestore');
+  }
 }
 
 function saveData(){
@@ -909,15 +914,29 @@ async function saveProfile(){
   saveBtn.disabled = true;
   try {
     const alreadyMine = profileData && profileData.cpf === cpfDigits;
+    const isAdmin = (currentUser.email || '').toLowerCase().trim() === "douglasmiguel571@gmail.com";
     if (!alreadyMine) {
       const cpfRef = doc(db, 'cpfRegistry', cpfDigits);
-      const cpfSnap = await getDoc(cpfRef);
-      if (cpfSnap.exists() && cpfSnap.data().uid !== currentUser.uid) {
-        setProfileError('Este CPF já está cadastrado em outra conta.');
-        saveBtn.disabled = false;
-        return;
+      try{
+        const cpfSnap = await getDoc(cpfRef);
+        if (cpfSnap.exists() && cpfSnap.data().uid !== currentUser.uid) {
+          if(isAdmin){
+            console.log('ADMIN bypass CPF duplicado - liberado');
+          } else {
+            setProfileError('Este CPF já está cadastrado em outra conta. Se é seu, entre em contato.');
+            saveBtn.disabled = false;
+            return;
+          }
+        }
+        await setDoc(cpfRef, { uid: currentUser.uid, createdAt: new Date().toISOString() });
+      }catch(e){
+        console.log('Erro ao verificar CPF, continuando (modo admin):', e);
+        if(isAdmin){
+          // admin continua mesmo com erro de permissão
+        } else {
+          throw e;
+        }
       }
-      await setDoc(cpfRef, { uid: currentUser.uid, createdAt: new Date().toISOString() });
     }
     await setDoc(doc(db, 'profiles', currentUser.uid), {
       nome, apelido, cpf: cpfDigits, telefone, email: (currentUser.email || ''), updatedAt: new Date().toISOString()
@@ -2591,7 +2610,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
     <div style="margin-top:24px; padding:16px; background:#f3f4f6; border-radius:12px; text-align:center;">
-      <p style="font-size:13px; color:#666;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
+      <p style="font-size:13px; color:#666;">Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
     </div>
   </div>
 </div>
