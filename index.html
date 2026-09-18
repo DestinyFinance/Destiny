@@ -1631,6 +1631,7 @@ function renderBar(){
 }
 
 
+
 function applyView(){
   document.getElementById('viewOverview').style.display = activeView === 'overview' ? 'block' : 'none';
   document.getElementById('viewMonth').style.display = activeView === 'month' ? 'block' : 'none';
@@ -1643,7 +1644,26 @@ function applyView(){
   document.getElementById('navMonthLabel').textContent = currentMonth ? monthLabel(currentMonth) : 'Mês';
   document.getElementById('navOverview').disabled = profileIncomplete;
   document.getElementById('navMonth').disabled = profileIncomplete;
+  // Esconde Olá Douglas só na aba Sobre
+  const greetingRow = document.querySelector('.greeting-row');
+  const sub = document.getElementById('subtitle');
+  if(greetingRow){
+    greetingRow.style.display = activeView === 'about' ? 'none' : 'flex';
+  }
+  if(sub){
+    if(activeView === 'about'){
+      sub.style.display = 'none';
+    } else {
+      sub.style.display = 'block';
+      sub.textContent = activeView === 'overview'
+        ? 'Visão geral de todos os meses'
+        : activeView === 'month'
+          ? (currentMonth ? 'Editando ' + monthLabelLong(currentMonth) : 'Sua renda, dividida com intenção.')
+          : 'Seus dados pessoais';
+    }
+  }
 }
+
 
 
 function updateGreeting(){
