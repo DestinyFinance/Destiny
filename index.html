@@ -1147,10 +1147,12 @@ function totalEntries(list){
   return (list || []).reduce((s,i) => s + (i.valor || 0), 0);
 }
 function despesasOf(md){
-  return md.categories.filter(c => c.tipo === 'gasto').reduce((s,c) => s + totalEntries(c.items), 0);
+  return md.categories.filter(c => c.tipo === 'gasto').reduce((s,c) => s + (c.items||[]).filter(i=>!i.reservado).reduce((a,b)=>a+(b.valor||0),0), 0);
 }
 function investimentosOf(md){
-  return md.categories.filter(c => c.tipo !== 'gasto').reduce((s,c) => s + totalEntries(c.items), 0);
+  const investCats = md.categories.filter(c => c.tipo !== 'gasto').reduce((s,c) => s + (c.items||[]).reduce((a,b)=>a+(b.valor||0),0), 0);
+  const reservadoEmGasto = md.categories.filter(c => c.tipo === 'gasto').reduce((s,c) => s + (c.items||[]).filter(i=>i.reservado).reduce((a,b)=>a+(b.valor||0),0), 0);
+  return investCats + reservadoEmGasto;
 }
 
 function limitStatus(limite, gasto, tipo){
@@ -1375,7 +1377,9 @@ function renderCategories(){
     const baseLimit = regularIncome(md) * (cat.pct||0) / 100;
     const extraForCat = extraIncomeForCategory(md, cat.id);
     const limite = baseLimit + extraForCat;
-    const gasto = totalEntries(items);
+    const gastoReal = (items || []).filter(i=>!i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+    const gastoReservado = (items || []).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+    const gasto = gastoReal;
     const st = limitStatus(limite, gasto, cat.tipo);
     const lbl = fieldLabels(cat.tipo);
     const barWidth = Math.min(st.pct * 100, 100);
@@ -1383,9 +1387,10 @@ function renderCategories(){
     const block = document.createElement('div');
     block.className = 'cat-block tipo-' + cat.tipo;
     let itemsHtml = items.map(it => `
-      <div class="line-item">
+      <div class="line-item" style="${it.reservado ? 'background:#E8F5F0; border-radius:10px; padding:2px 4px;' : ''}">
         <input type="text" value="${it.nome}" data-cat="${cat.id}" data-item="${it.id}" data-field="nome" placeholder="Descrição" />
         <input type="text" inputmode="decimal" class="money-input" value="R$ ${moneyStr(it.valor)}" data-cat="${cat.id}" data-item="${it.id}" data-field="valor" />
+        <button class="pin-toggle${it.reservado ? ' active' : ''}" data-reservado="${cat.id}|${it.id}" title="${it.reservado ? 'Reservado — conta em Investimentos' : 'Marcar como reservado (conta em Investimentos)'}" style="${it.reservado ? 'background:#1F4B3D; color:#fff; border-color:#1F4B3D;' : ''}">${it.reservado ? '💰' : 'R$'}</button>
         <button class="pin-toggle${it.fixo ? ' active' : ''}" data-fixitem="${cat.id}|${it.id}" title="${it.fixo ? 'Fixo — repete todo mês' : 'Marcar como fixo (repete no próximo mês)'}">${REPEAT_ICON}</button>
         <button class="ghost" data-delitem="${cat.id}|${it.id}" aria-label="Remover lançamento">&times;</button>
       </div>
