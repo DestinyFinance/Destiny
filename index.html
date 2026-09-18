@@ -1592,7 +1592,7 @@ function renderDistTable(){
       if(reservadoCat>0){
         limiteExibido = limiteOriginal - reservadoCat;
         gastoExibido = gastoReal;
-        badgeReservado = `<span style='font-size:10px; white-space:nowrap;'> (💰 ${fmt(reservadoCat)} → Invest)</span>`;
+        badgeReservado = `<span style='font-size:9px; white-space:nowrap; background:#FFF7D6; padding:1px 4px; border-radius:4px;'>💰 ${fmt(reservadoCat)}→Invest</span>`;
         tooltipLimite = `Limite original ${fmt(limiteOriginal)} - ${fmt(reservadoCat)} reservado = ${fmt(limiteExibido)}`;
       }
     } else if((cat.tipo === 'investimento' || cat.tipo === 'reserva') && !reservadoJaAdicionadoLimite){
@@ -1600,7 +1600,7 @@ function renderDistTable(){
         limiteExibido = limiteOriginal + totalReservadoGasto;
         const gastoOriginal = totalEntries(cat.items);
         gastoExibido = gastoOriginal + totalReservadoGasto;
-        badgeReservado = `<span style='font-size:10px; white-space:nowrap;'> (+R$ ${moneyStr(totalReservadoGasto)} reservado)</span>`;
+        badgeReservado = `<span class="invest-reservado">+R$ ${moneyStr(totalReservadoGasto)} reserv.</span>`;
         tooltipLimite = `Limite original ${fmt(limiteOriginal)} + ${fmt(totalReservadoGasto)} reservado de outras categorias = ${fmt(limiteExibido)}`;
         reservadoJaAdicionadoLimite = true;
       }
@@ -1614,7 +1614,7 @@ function renderDistTable(){
     sumGasto += gastoExibido;
     
     const extraForCat = extraIncomeForCategory(md, cat.id);
-    const extraBadge = extraForCat > 0 ? ` <span title="Inclui ${fmt(extraForCat)} de renda extra direcionada" style="font-size:10.5px; color:var(--teal); font-weight:600;">(+extra)</span>` : '';
+    const extraBadge = extraForCat > 0 ? ` <span class="invest-extra">+extra</span>` : '';
     
     // Tooltip explicativo para limite ajustado
     const limiteCell = tooltipLimite ? 
@@ -1631,7 +1631,7 @@ Quando você reserva dinheiro de uma categoria de gasto (ex: Lazer) para investi
   const trTotal = document.createElement('tr');
   trTotal.className = 'total';
   const sobraTotal = sumLimite - sumGasto;
-  trTotal.innerHTML = `<td>Total</td><td class="num">${fmt(sumLimite)}</td><td class="num">${fmt(sumGasto)}</td><td class="num ${sobraTotal < 0 ? 'sobra-neg' : 'sobra-pos'}">${fmt(sobraTotal)}</td>`;
+  trTotal.innerHTML = `<td><strong>Total</strong></td><td class="num"><strong>${fmt(sumLimite)}</strong></td><td class="num"><strong>${fmt(sumGasto)}</strong></td><td class="num ${sobraTotal < 0 ? 'sobra-neg' : 'sobra-pos'}"><strong>${fmt(sobraTotal)}</strong></td>`;
   tbody.appendChild(trTotal);
 }
 
