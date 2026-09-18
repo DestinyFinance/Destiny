@@ -206,6 +206,16 @@
   .invest-disclaimer { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-soft); background: var(--gold-soft); border-radius: 10px; padding: 10px 12px; margin-top: 4px; }
   .invest-disclaimer .icon { color: #7A5416; flex-shrink: 0; margin-top: 1px; }
 
+  
+  /* Tooltip de limite ajustado */
+  .limite-info { position:relative; cursor:help; border-bottom:1px dashed #999; white-space:nowrap; font-size:12.5px; }
+  .limite-info .info-badge { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#1F4B3D; color:#fff; font-size:10px; font-weight:800; margin-left:4px; cursor:pointer; }
+  .limite-tooltip { display:none; position:absolute; left:0; top:24px; background:#1F2937; color:#fff; padding:10px 12px; border-radius:10px; font-size:11.5px; line-height:1.4; width:260px; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.2); white-space:normal; }
+  .limite-info:hover .limite-tooltip { display:block; }
+  .dist td.num { font-size:12.5px; white-space:nowrap; }
+  .dist td:first-child { font-size:12.5px; }
+  .dist th { font-size:11.5px; }
+
   /* ---------- tutorial / tour ---------- */
   #tourHighlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(15,17,51,0.6); transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease; pointer-events: none; z-index: 9998; }
   #tourCard { position: fixed; z-index: 9999; background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-card); padding: 18px 20px; width: 300px; max-width: calc(100vw - 32px); transition: top .2s ease, left .2s ease, bottom .2s ease; }
@@ -363,7 +373,7 @@
       <div class="months-list" id="monthsBar"></div>
       <div class="month-add" id="monthAddWrap"></div>
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
-    <div id="ownerPanel" style="display:block; margin-top:16px; padding:14px; background:#16231F; border-radius:14px; color:#fff; border:2px solid #D1F25A;">
+    <div id="ownerPanel" style="display:none !important;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <span style="font-size:11px; font-weight:800; letter-spacing:0.08em; opacity:0.9;">👑 PAINEL DO DONO</span>
         <span style="font-size:9px; opacity:0.6;">só você vê</span>
@@ -1582,7 +1592,7 @@ function renderDistTable(){
       if(reservadoCat>0){
         limiteExibido = limiteOriginal - reservadoCat;
         gastoExibido = gastoReal;
-        badgeReservado = ` (💰 ${fmt(reservadoCat)} → Invest)`;
+        badgeReservado = `<span style='font-size:10px; white-space:nowrap;'> (💰 ${fmt(reservadoCat)} → Invest)</span>`;
         tooltipLimite = `Limite original ${fmt(limiteOriginal)} - ${fmt(reservadoCat)} reservado = ${fmt(limiteExibido)}`;
       }
     } else if((cat.tipo === 'investimento' || cat.tipo === 'reserva') && !reservadoJaAdicionadoLimite){
@@ -1590,7 +1600,7 @@ function renderDistTable(){
         limiteExibido = limiteOriginal + totalReservadoGasto;
         const gastoOriginal = totalEntries(cat.items);
         gastoExibido = gastoOriginal + totalReservadoGasto;
-        badgeReservado = ` (+R$ ${moneyStr(totalReservadoGasto)} reservado)`;
+        badgeReservado = `<span style='font-size:10px; white-space:nowrap;'> (+R$ ${moneyStr(totalReservadoGasto)} reservado)</span>`;
         tooltipLimite = `Limite original ${fmt(limiteOriginal)} + ${fmt(totalReservadoGasto)} reservado de outras categorias = ${fmt(limiteExibido)}`;
         reservadoJaAdicionadoLimite = true;
       }
@@ -2485,7 +2495,8 @@ onAuthStateChanged(auth, async (user) => {
   });
 
   // Painel do dono visível só para admin
-  window.checkOwnerPanel = function(userEmail){
+  window.checkOwnerPanel = function(userEmail){ document.getElementById("ownerPanel")?.style.setProperty("display","none","important"); return; // DESATIVADO TEMPORARIAMENTE
+  /* original desativado 
     const panel = document.getElementById('ownerPanel');
     if(!panel) return;
     if(!userEmail){ panel.style.display='none'; return; }
@@ -2499,6 +2510,7 @@ onAuthStateChanged(auth, async (user) => {
     } else {
       panel.style.display='none';
     }
+  } */
   };
 
   window.liberarClienteOwner = async function(){
