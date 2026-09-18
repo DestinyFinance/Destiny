@@ -1559,17 +1559,50 @@ function renderDistTable(){
   const tbody = document.getElementById('distBody');
   tbody.innerHTML = '';
   let sumLimite = 0, sumGasto = 0;
+  // Total reservado de categorias de gasto (ex: Lazer reservado que vira investimento)
+  const totalReservadoGasto = md.categories.filter(c=>c.tipo==='gasto').reduce((s,c)=> s + (c.items||[]).filter(i=>i.reservado).reduce((a,b)=>a+(b.valor||0),0), 0);
+  let reservadoJaAdicionado = false;
+  
   md.categories.forEach(cat => {
     const limite = categoryLimit(md, cat);
-    const gasto = totalEntries(cat.items);
-    const sobra = limite - gasto;
+    let gasto = totalEntries(cat.items);
+    let gastoExibido = gasto;
+    let badgeReservado = '';
+    
+    if(cat.tipo === 'gasto'){
+      const reservadoCat = (cat.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+      const gastoReal = gasto - reservadoCat;
+      // Para tabela, mostra gasto real (sem reservado) mas mantém sobra correta visualmente
+      // O reservado já está sendo somado em Investimentos, então não conta aqui como gasto
+      gastoExibido = gastoReal;
+      if(reservadoCat>0){
+        badgeReservado = ` <span title="${fmt(reservadoCat)} reservado e movido para Investimentos" style="font-size:10.5px; color:#1F4B3D; font-weight:700;">(💰 ${fmt(reservadoCat)} → Invest)</span>`;
+      }
+    } else if((cat.tipo === 'investimento' || cat.tipo === 'reserva') && !reservadoJaAdicionado){
+      // Adiciona todo reservado de gasto no primeiro Investimento
+      if(totalReservadoGasto>0){
+        gastoExibido = gasto + totalReservadoGasto;
+        badgeReservado = ` <span title="Inclui ${fmt(totalReservadoGasto)} reservado de outras categorias" style="font-size:10.5px; color:var(--teal); font-weight:600;">(+${fmt(totalReservadoGasto)} reservado)</span>`;
+        reservadoJaAdicionado = true;
+      }
+    }
+    
+    const sobra = limite - (cat.tipo==='gasto' ? totalEntries(cat.items) : gastoExibido);
+    // Para gasto, sobra considera total (inclui reservado) pra não dar sensação de dinheiro livre
+    const sobraVisual = cat.tipo==='gasto' ? (limite - totalEntries(cat.items)) : (limite - gastoExibido);
     const isMeta = cat.tipo === 'investimento' || cat.tipo === 'reserva';
-    const sobraBoa = isMeta ? sobra <= 0 : sobra >= 0;
-    sumLimite += limite; sumGasto += gasto;
+    const sobraBoa = isMeta ? sobraVisual <= 0.01 : sobraVisual >= -0.01;
+    sumLimite += limite; sumGasto += (cat.tipo==='gasto' ? totalEntries(cat.items) : gastoExibido);
+    // Se for gasto e tem reservado, o total geral mantém o valor original (não duplica), então ajusta sumGasto
+    if(cat.tipo==='gasto'){
+      // sumGasto já tem total (inclui reservado), mas para bater com visão geral, vamos manter total igual
+      // Na visão geral despesas excluem reservado, mas na tabela de distribuição por categoria, queremos mostrar que Lazer consumiu 884
+      // Então mantemos sumGasto como total real gasto (inclui reservado) pra tabela fechar
+    }
     const extraForCat = extraIncomeForCategory(md, cat.id);
     const extraBadge = extraForCat > 0 ? ` <span title="Inclui ${fmt(extraForCat)} de renda extra direcionada" style="font-size:10.5px; color:var(--teal); font-weight:600;">(+extra)</span>` : '';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${cat.nome}${extraBadge}</td><td class="num">${fmt(limite)}</td><td class="num">${fmt(gasto)}</td><td class="num ${sobraBoa ? 'sobra-pos' : 'sobra-neg'}">${fmt(sobra)}</td>`;
+    tr.innerHTML = `<td>${cat.nome}${extraBadge}${badgeReservado}</td><td class="num">${fmt(limite)}</td><td class="num">${fmt(gastoExibido)}</td><td class="num ${sobraBoa ? 'sobra-pos' : 'sobra-neg'}">${fmt(sobraVisual)}</td>`;
     tbody.appendChild(tr);
   });
   const trTotal = document.createElement('tr');
@@ -1578,6 +1611,7 @@ function renderDistTable(){
   trTotal.innerHTML = `<td>Total</td><td class="num">${fmt(sumLimite)}</td><td class="num">${fmt(sumGasto)}</td><td class="num ${sobraTotal < 0 ? 'sobra-neg' : 'sobra-pos'}">${fmt(sobraTotal)}</td>`;
   tbody.appendChild(trTotal);
 }
+
 
 const palette = ['#1F4B3D', '#0E9D74', '#C4881F', '#E14640', '#5B5FA6', '#7A5416', '#3E7C63', '#1F8FC4'];
 const REPEAT_ICON = '<svg class="icon" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
@@ -1589,8 +1623,26 @@ if (window.ChartDataLabels) {
 
 function renderDonut(){
   const md = currentMonthData();
-  const labels = md.categories.map(c => c.nome);
-  const values = md.categories.map(c => totalEntries(c.items));
+  // Calcula totais ajustados com reservado movido para Investimentos
+  const totalsMap = {};
+  let totalReservado = 0;
+  md.categories.forEach(c=>{
+    const real = (c.items||[]).filter(i=>!i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+    const reservado = (c.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+    if(c.tipo==='gasto'){
+      totalsMap[c.nome] = real;
+      totalReservado += reservado;
+    } else {
+      totalsMap[c.nome] = (totalsMap[c.nome]||0) + totalEntries(c.items);
+    }
+  });
+  // Adiciona reservado ao primeiro investimento
+  const investCat = md.categories.find(c=>c.tipo==='investimento');
+  if(investCat && totalReservado>0){
+    totalsMap[investCat.nome] = (totalsMap[investCat.nome]||0) + totalReservado;
+  }
+  const labels = Object.keys(totalsMap);
+  const values = Object.values(totalsMap);
   const ctx = document.getElementById('donutChart');
   const hasData = values.some(v => v > 0);
   if (donutChart) donutChart.destroy();
@@ -1605,7 +1657,18 @@ function renderBar(){
   const totalsByName = {};
   Object.values(data.months).forEach(m => {
     m.categories.forEach(c => {
-      totalsByName[c.nome] = (totalsByName[c.nome] || 0) + totalEntries(c.items);
+      const real = (c.items||[]).filter(i=>!i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+      const reservado = (c.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
+      if(c.tipo === 'gasto'){
+        totalsByName[c.nome] = (totalsByName[c.nome] || 0) + real;
+        if(reservado>0){
+          // Soma reservado de categorias de gasto em Investimentos
+          const investName = Object.values(m.categories).find(x=>x.tipo==='investimento')?.nome || 'Investimentos';
+          totalsByName[investName] = (totalsByName[investName] || 0) + reservado;
+        }
+      } else {
+        totalsByName[c.nome] = (totalsByName[c.nome] || 0) + totalEntries(c.items);
+      }
     });
   });
   // Ordena do maior para o menor, pra a barra não ficar "fora de ordem".
