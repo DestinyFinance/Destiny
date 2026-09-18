@@ -271,7 +271,16 @@
 
 <div class="wrap sr-only"><h2>Painel de controle financeiro pessoal com login por e-mail e senha, sincronização na nuvem, categorias independentes por mês com limite ou meta por percentual, tabela de distribuição e visão geral acumulada por mês e por categoria</h2></div>
 
-
+<div id="trialLockScreen" style="display:none;" class="auth-shell">
+  <div class="lock-wrap">
+    <div class="lock-icon">
+      <svg class="icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    </div>
+    <h1>Seu período de teste terminou</h1>
+    <p id="lockMessage">Você usou os 30 dias gratuitos do Destiny. Para continuar acessando seus dados e lançamentos, entre em contato para ativar sua assinatura.</p>
+    <button class="primary" id="lockLogoutBtn" style="width:100%; height:40px;">Sair</button>
+  </div>
+</div>
 
 <div id="authGate">
   <div class="auth-shell">
@@ -386,7 +395,7 @@
       </div>
     </header>
 
-    <div id="trialBanner" style="display:none !important;" style="display:none;"></div>
+    <div id="trialBanner" style="display:none;"></div>
 
     <div class="wrap">
 
@@ -1584,28 +1593,88 @@ function renderAll(skipMonthsBar){
 
 async function deleteCurrentMonth(){
   try{
-    const allMonths = Object.keys(data.months || {});
-    if(allMonths.length <= 1){ alert('Não é possível apagar o único mês existente.'); return; }
-    const deletedYm = currentMonth;
-    if(!deletedYm || !data.months[deletedYm]){ alert('Mês não encontrado.'); return; }
-    const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
-    const monthsBackup = JSON.parse(JSON.stringify(data.months));
-    const md = currentMonthData();
-    const incCount = (md.incomeItems||[]).length;
-    const expCount = (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
-    if(!confirm(`Apagar APENAS o mês ${monthLabelLong(deletedYm)}? Serão mantidos: ${allMonths.filter(m=>m!==deletedYm).map(m=>monthLabelLong(m)).join(', ')} e seu perfil. Tem certeza?`)) return;
-    delete data.months[deletedYm];
-    data.profile = profileBackup;
-    if(Object.keys(data.months).length === 0){ data.months = monthsBackup; alert('Erro: operação bloqueada para proteger seus dados.'); return; }
-    const remaining = Object.keys(data.months).sort();
-    const prev = remaining.filter(m=> m < deletedYm);
-    currentMonth = prev.length ? prev[prev.length-1] : remaining[remaining.length-1];
-    await persistNow();
-    renderAll();
-    alert(`✅ ${monthLabelLong(deletedYm)} apagado!`);
-  }catch(e){ console.error('Erro delete:', e); alert('Erro ao apagar: ' + e.message); }
-}
+    console.log('=== DELETE INICIADO ===');
+    console.log('currentMonth antes:', currentMonth);
+    console.log('todos meses antes:', Object.keys(data.months));
+    console.log('perfil antes:', data.profile);
 
+    const months = Object.keys(data.months || {});
+    if (months.length <= 1) {
+      alert('Não é possível apagar o único mês existente.');
+      return;
+    }
+
+    // Protege perfil
+    const profileBackup = JSON.parse(JSON.stringify(data.profile || {}));
+    
+    const md = currentMonthData();
+    const totalInc = (md.incomeItems||[]).reduce((s,i)=>s+(Number(i.valor)||0),0);
+    const totalExp = (md.categories||[]).reduce((s,c)=> s + (c.items||[]).reduce((a,it)=> a + (Number(it.valor)||0),0), 0);
+    const totalCount = (md.incomeItems||[]).length + (md.categories||[]).reduce((s,c)=>s+(c.items||[]).length,0);
+
+    let msg = '';
+    if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
+      msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
+
+• ${totalCount} lançamento(s)
+• Receitas: R$ ${totalInc.toFixed(2).replace('.',',')}
+• Despesas: R$ ${totalExp.toFixed(2).replace('.',',')}
+
+Apagar APENAS este mês?
+Os outros meses e o PERFIL serão mantidos.`;
+    } else {
+      msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
+Os outros meses e o perfil NÃO serão apagados.`;
+    }
+
+    if (!confirm(msg)) {
+      console.log('Cancelado pelo usuário');
+      return;
+    }
+
+    const deletedYm = currentMonth;
+    const remainingKeys = months.filter(m=> m !== deletedYm);
+    
+    console.log('Deletando APENAS:', deletedYm);
+    console.log('Mantendo:', remainingKeys);
+
+    // Remove APENAS 1 mês
+    delete data.months[deletedYm];
+    
+    // Restaura perfil caso tenha sido afetado
+    data.profile = profileBackup;
+    
+    // Define novo mês atual
+    const sortedRemaining = remainingKeys.sort();
+    const prevMonths = sortedRemaining.filter(m => m < deletedYm);
+    currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : sortedRemaining[sortedRemaining.length - 1];
+
+    console.log('currentMonth depois:', currentMonth);
+    console.log('todos meses depois:', Object.keys(data.months));
+    console.log('perfil depois:', data.profile);
+
+    await persistNow();
+    
+    // Força recarregar do Firebase para garantir que não apagou tudo
+    try{
+      if(typeof loadFromFirebase === 'function'){
+        // não recarrega tudo, só renderiza
+      }
+    }catch(e){}
+
+    renderAll();
+    
+    alert(`✅ Mês ${monthLabelLong(deletedYm)} excluído!
+
+Mantidos: ${remainingKeys.map(m=>monthLabelLong(m)).join(', ')}
+Perfil mantido.`);
+    
+  }catch(err){
+    console.error('Erro ao deletar:', err);
+    alert('Erro ao apagar mês: ' + err.message + '
+Recarregue a página.');
+  }
+}
 
 
 
@@ -2138,7 +2207,7 @@ checkTrialAccess = async function(user){
 
 
 // ADMIN - 5 cliques na logo
-// sem modal logo
+// admin logo desativado
 function closeAdmin(){ document.getElementById('REMOVED').style.display='none'; }
 async function liberarCliente(){
   const email = document.getElementById('adminEmailInput').value.trim().toLowerCase();
@@ -2174,7 +2243,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   if (user) {
-    console.log('Site aberto - sem trava');
+    const allowed = await checkTrialAccess(user);
+    if (!allowed) {
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'none';
+      document.getElementById('trialLockScreen').style.display = 'flex';
+      return;
+    }
     document.getElementById('trialLockScreen').style.display = 'none';
     document.getElementById('authGate').style.display = 'none';
     document.getElementById('appRoot').style.display = 'flex';
@@ -2254,12 +2329,18 @@ onAuthStateChanged(auth, async (user) => {
   // Painel do dono visível só para admin
         window.checkOwnerPanel = function(userEmail){
     const panel = document.getElementById('ownerPanel');
-    if(!panel) return;
+    if(!panel){ console.log('ownerPanel não encontrado'); return; }
     if(!userEmail){ panel.style.display='none'; return; }
     const lower = userEmail.toLowerCase().trim();
     const isAdmin = lower === "douglasmiguel571@gmail.com";
-    panel.style.display = isAdmin ? 'block' : 'none';
-    if(isAdmin && typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
+    console.log('checkOwnerPanel', userEmail, isAdmin);
+    if(isAdmin){
+      panel.style.display='block';
+      panel.style.visibility='visible';
+      if(typeof loadRecentFreeUsers === 'function') try{loadRecentFreeUsers();}catch(e){}
+    } else {
+      panel.style.display='none';
+    }
   };
 
 
@@ -2423,7 +2504,50 @@ document.getElementById('navPlans')?.addEventListener('click', () => {
 </script>
 
 
-
+<div id="plansView" class="view" style="display:none; padding:24px;">
+  <div style="max-width:900px; margin:0 auto;">
+    <h2 style="font-size:28px; font-weight:800; margin-bottom:8px; color:#111;">Escolha seu plano</h2>
+    <p style="color:#666; margin-bottom:24px;">Desbloqueie todo o potencial do Destiny</p>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <!-- Essencial -->
+      <div style="border:2px solid #D1F25A; border-radius:20px; padding:24px; background:#16231F; color:#fff; position:relative;">
+        <div style="position:absolute; top:-12px; left:20px; background:#D1F25A; color:#000; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800;">MAIS POPULAR</div>
+        <h3 style="font-size:20px; font-weight:800; margin-top:8px;">Essencial</h3>
+        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$24,90<span style="font-size:14px; font-weight:400; opacity:.7;">/mês</span></p>
+        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
+          <li>✅ Controle completo de receitas e despesas</li>
+          <li>✅ Categorias e metas ilimitadas</li>
+          <li>✅ Relatórios mensais detalhados</li>
+          <li>✅ Backup automático</li>
+          <li>✅ Suporte por e-mail</li>
+        </ul>
+        <a href="https://mpago.la/2z3oH6j" target="_blank" style="display:block; text-align:center; background:#D1F25A; color:#000; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar por R$24,90 →</a>
+        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Pagamento seguro via Mercado Pago</p>
+      </div>
+      
+      <!-- Anual -->
+      <div style="border:2px solid #e5e7eb; border-radius:20px; padding:24px; background:#fff; color:#111;">
+        <h3 style="font-size:20px; font-weight:800;">Anual <span style="background:#D1F25A; color:#000; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800;">-78% OFF</span></h3>
+        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$65,70<span style="font-size:14px; font-weight:400; opacity:.7;">/ano</span></p>
+        <p style="font-size:13px; opacity:.6; margin-top:-8px;">Equivale a R$5,47/mês</p>
+        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
+          <li>✅ Tudo do Essencial</li>
+          <li>✅ Economia de R$233 por ano</li>
+          <li>✅ Acesso prioritário a novidades</li>
+          <li>✅ Suporte prioritário</li>
+          <li>✅ 1 ano completo sem preocupação</li>
+        </ul>
+        <a href="https://mpago.la/2z3oH6j" target="_blank" style="display:block; text-align:center; background:#111; color:#fff; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar Anual R$65,70 →</a>
+        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Melhor custo-benefício</p>
+      </div>
+    </div>
+    
+    <div style="margin-top:24px; padding:16px; background:#f3f4f6; border-radius:12px; text-align:center;">
+      <p style="font-size:13px; color:#666;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
+    </div>
+  </div>
+</div>
 
 
 <script>
@@ -2457,45 +2581,22 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
-<div id="plansView" class="view" style="display:none; padding:24px;">
-  <div style="max-width:900px; margin:0 auto;">
-    <h2 style="font-size:28px; font-weight:800; margin-bottom:8px; color:#111;">Escolha seu plano</h2>
-    <p style="color:#666; margin-bottom:24px;">Desbloqueie todo o potencial do Destiny</p>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-      <div style="border:2px solid #D1F25A; border-radius:20px; padding:24px; background:#16231F; color:#fff; position:relative;">
-        <div style="position:absolute; top:-12px; left:20px; background:#D1F25A; color:#000; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800;">MAIS POPULAR</div>
-        <h3 style="font-size:20px; font-weight:800; margin-top:8px;">Mensal</h3>
-        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$24,90<span style="font-size:14px; font-weight:400; opacity:.7;">/mês</span></p>
-        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
-          <li>✅ Controle completo</li>
-          <li>✅ Categorias ilimitadas</li>
-          <li>✅ Relatórios mensais</li>
-          <li>✅ Backup automático</li>
-          <li>✅ Suporte por e-mail</li>
-        </ul>
-        <a href="https://mpago.la/2z3oH6j" target="_blank" style="display:block; text-align:center; background:#D1F25A; color:#000; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar por R$24,90 →</a>
-        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Pagamento seguro via Mercado Pago</p>
-      </div>
-      <div style="border:2px solid #e5e7eb; border-radius:20px; padding:24px; background:#fff; color:#111;">
-        <h3 style="font-size:20px; font-weight:800;">Trimestral <span style="background:#D1F25A; color:#000; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800;">-12% OFF</span></h3>
-        <p style="font-size:36px; font-weight:900; margin:12px 0;">R$65,70<span style="font-size:14px; font-weight:400; opacity:.7;">/trimestre</span></p>
-        <p style="font-size:13px; opacity:.6; margin-top:-8px;">Equivale a R$21,90/mês</p>
-        <ul style="font-size:14px; line-height:2; list-style:none; padding:0; margin:16px 0;">
-          <li>✅ Tudo do Mensal</li>
-          <li>✅ Economia de R$9 por trimestre</li>
-          <li>✅ Acesso prioritário</li>
-          <li>✅ Suporte prioritário</li>
-          <li>✅ 3 meses sem preocupação</li>
-        </ul>
-        <a href="https://mpago.la/2CiRAfx" target="_blank" style="display:block; text-align:center; background:#111; color:#fff; padding:14px; border-radius:12px; font-weight:800; text-decoration:none; margin-top:16px;">Assinar Trimestral R$65,70 →</a>
-        <p style="font-size:11px; opacity:.6; text-align:center; margin-top:10px;">Melhor custo-benefício</p>
-      </div>
-    </div>
-    <div style="margin-top:24px; padding:16px; background:#f3f4f6; border-radius:12px; text-align:center;">
-      <p style="font-size:13px; color:#666;">Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos • Cancele quando quiser</p>
-    </div>
-  </div>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const navPlans = document.getElementById('navPlans');
+  if(navPlans){
+    navPlans.addEventListener('click', function(e){
+      e.preventDefault();
+      window.activeView='plans';
+      document.querySelectorAll('#profileView, #overviewView, #monthView, #view-month, #plansView').forEach(el=>{ if(el) el.style.display='none'; });
+      const p = document.getElementById('plansView');
+      if(p) p.style.display='block';
+      document.querySelectorAll('.side-nav-item').forEach(b=>b.classList.remove('active'));
+      navPlans.classList.add('active');
+    });
+  }
+});
+</script>
 
 </body>
 </html>
