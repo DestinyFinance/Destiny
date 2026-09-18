@@ -287,7 +287,31 @@
   setTimeout(removeLocks, 2000);
   
   // Sobrescreve checkTrialAccess global
-  window.checkTrialAccess = async function(){ return true; };
+  
+  // NOVA LOGICA: trial expirado NAO bloqueia login, apenas redireciona para Assinar Plano
+  window.checkTrialAccess = async function(){
+    try{
+      // Se não tem perfil, deixa passar (primeira pagina é login)
+      if(!data || !data.profile) return true;
+      // Aqui entraria logica de data de expiração - por enquanto sempre libera
+      // Quando expirar, mostra popup e vai para viewPlans
+      const trialExpired = false; // MUDE para true quando quiser ativar trava
+      if(trialExpired){
+        // Mostra modal e direciona para aba Assinar Plano
+        setTimeout(()=>{
+          if(confirm('Seu teste grátis acabou.
+
+Quer ver os planos para continuar?')){
+            activeView='plans';
+            applyView();
+          }
+        }, 800);
+        return false;
+      }
+      return true;
+    }catch(e){ return true; }
+  };
+
 })();
 </script>
 
@@ -559,47 +583,99 @@
 </div>
 
 
+      
       <div id="viewPlans" style="display:none;">
-        <div style="max-width:900px;">
-          <h2 style="font-size:28px; font-weight:900; margin-bottom:8px;">Escolha seu plano</h2>
-          <p style="opacity:.7; margin-bottom:24px;">Desbloqueie todo o potencial do Destiny e tenha controle total do seu dinheiro.</p>
+        <div style="max-width:640px; margin:0 auto;">
+          <h2 style="font-size:32px; font-weight:900; margin-bottom:8px; font-family:Manrope, sans-serif;">Escolha seu plano</h2>
+          <p style="opacity:.7; margin-bottom:28px; font-size:15px; line-height:1.5;">Comece grátis e evolua quando precisar. Todos os planos têm 30 dias de garantia.</p>
           
-          <div style="display:flex; flex-direction:column; gap:20px; max-width:480px;">
-            <!-- MENSAL -->
-            <div style="border:2px solid #e5e7eb; border-radius:20px; padding:28px; background:#fff; color:#111;">
-              <h3 style="font-size:22px; font-weight:800; margin:0;">Mensal</h3>
-              <p style="opacity:.6; font-size:13px; margin:6px 0 0;">Flexibilidade total</p>
-              <p style="font-size:36px; font-weight:900; margin:16px 0 4px;">R$24,90<span style="font-size:14px; font-weight:600; opacity:.6;">/mês</span></p>
-              <p style="font-size:12px; opacity:.5; margin-bottom:18px;">Cobrado mensalmente • Cancele quando quiser</p>
-              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px;">
-                <li>✅ Todos os recursos liberados</li>
-                <li>✅ Meses ilimitados</li>
-                <li>✅ Sincronização na nuvem</li>
-                <li>✅ Suporte por e-mail</li>
+          <div style="display:flex; flex-direction:column; gap:24px;">
+            
+            <!-- GRATIS -->
+            <div style="border:1.5px solid #e5e7eb; border-radius:24px; padding:28px; background:#fff; color:#111; position:relative;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                <div>
+                  <h3 style="font-size:22px; font-weight:800; margin:0;">Grátis</h3>
+                  <p style="opacity:.6; font-size:13px; margin:4px 0 0;">Ideal para começar</p>
+                </div>
+                <span style="background:#EEF3F0; color:#1F4B3D; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;">30 DIAS</span>
+              </div>
+              <p style="font-size:38px; font-weight:900; margin:16px 0 4px;">R$0<span style="font-size:14px; font-weight:600; opacity:.6;">/mês</span></p>
+              <p style="font-size:12px; opacity:.5; margin-bottom:18px;">Teste completo sem cartão</p>
+              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px; line-height:1.4;">
+                <li>✅ Até 2 meses criados</li>
+                <li>✅ Até 5 categorias por mês</li>
+                <li>✅ Visão Geral acumulada</li>
+                <li>✅ Tabela de distribuição por %</li>
+                <li>⚠️ Sem sincronização na nuvem (dados locais)</li>
+                <li>⚠️ Suporte apenas por FAQ</li>
               </ul>
+              <div style="background:#F9FAFB; border-radius:12px; padding:12px 14px; font-size:12px; line-height:1.5; margin-bottom:18px;">
+                <strong>Vantagem:</strong> Perfeito para sentir se o Destiny combina com sua rotina. Você já organiza 2 meses reais sem pagar nada.
+              </div>
+              <button onclick="activeView='month'; applyView();" style="display:block; width:100%; text-align:center; background:#fff; color:#111; padding:14px; border-radius:12px; font-weight:800; border:1.5px solid #111; cursor:pointer;">Começar grátis →</button>
+            </div>
+
+            <!-- MENSAL -->
+            <div style="border:1.5px solid #e5e7eb; border-radius:24px; padding:28px; background:#fff; color:#111;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                <div>
+                  <h3 style="font-size:22px; font-weight:800; margin:0;">Mensal</h3>
+                  <p style="opacity:.6; font-size:13px; margin:4px 0 0;">Flexibilidade total</p>
+                </div>
+                <span style="background:#111; color:#fff; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:800;">MAIS POPULAR</span>
+              </div>
+              <p style="font-size:38px; font-weight:900; margin:16px 0 4px;">R$24,90<span style="font-size:14px; font-weight:600; opacity:.6;">/mês</span></p>
+              <p style="font-size:12px; opacity:.5; margin-bottom:18px;">Cobrado mensalmente • Cancele quando quiser</p>
+              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px; line-height:1.4;">
+                <li>✅ <strong>Meses ilimitados</strong></li>
+                <li>✅ <strong>Categorias ilimitadas</strong> com limite/meta por %</li>
+                <li>✅ Sincronização na nuvem (Firebase)</li>
+                <li>✅ Perfil completo salvo</li>
+                <li>✅ Gráficos, tabela e visão geral completa</li>
+                <li>✅ Suporte por e-mail em até 24h</li>
+              </ul>
+              <div style="background:#EEF3F0; border-radius:12px; padding:12px 14px; font-size:12px; line-height:1.5; margin-bottom:18px;">
+                <strong>Vantagem:</strong> Liberdade total sem fidelidade. Para quem quer controle real, com tudo salvo na nuvem e acesso de qualquer aparelho.
+              </div>
               <a href="https://mpago.la/2CiRAfx" target="_blank" style="display:block; text-align:center; background:#111; color:#fff; padding:14px; border-radius:12px; font-weight:800; text-decoration:none;">Assinar Mensal →</a>
             </div>
 
-            <!-- TRIMESTRAL - DESTAQUE -->
-            <div style="border:2px solid #D1F25A; border-radius:20px; padding:28px; background:#111; color:#fff; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.15);">
-              <div style="position:absolute; top:-12px; right:20px; background:#D1F25A; color:#000; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:900; letter-spacing:.5px;">MELHOR CUSTO-BENEFÍCIO • -12% OFF</div>
-              <h3 style="font-size:22px; font-weight:800; margin:0;">Trimestral</h3>
-              <p style="opacity:.7; font-size:13px; margin:6px 0 0;">Equivale a R$21,90/mês</p>
-              <p style="font-size:36px; font-weight:900; margin:16px 0 4px;">R$65,70<span style="font-size:14px; font-weight:600; opacity:.7;"> / 3 meses</span></p>
-              <p style="font-size:12px; opacity:.6; margin-bottom:18px;">Economia de R$9 por trimestre • 3 meses sem preocupação</p>
-              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px;">
+            <!-- TRIMESTRAL -->
+            <div style="border:2px solid #1F4B3D; border-radius:24px; padding:28px; background:#1F4B3D; color:#fff; position:relative; box-shadow:0 12px 32px rgba(31,75,61,.25);">
+              <div style="position:absolute; top:-12px; right:20px; background:#D1F25A; color:#000; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:900; letter-spacing:.5px;">MELHOR CUSTO • -12% OFF</div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                <div>
+                  <h3 style="font-size:22px; font-weight:800; margin:0; color:#fff;">Trimestral</h3>
+                  <p style="opacity:.7; font-size:13px; margin:4px 0 0; color:#C5D6D0;">Equivale a R$21,90/mês</p>
+                </div>
+              </div>
+              <p style="font-size:38px; font-weight:900; margin:16px 0 4px; color:#fff;">R$65,70<span style="font-size:14px; font-weight:600; opacity:.7;"> / 3 meses</span></p>
+              <p style="font-size:12px; opacity:.6; margin-bottom:18px; color:#C5D6D0;">Economia de R$9 • Pague 1 vez a cada 3 meses</p>
+              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px; line-height:1.4;">
                 <li>✅ Tudo do Mensal</li>
-                <li>✅ Economia garantida</li>
-                <li>✅ Acesso prioritário a novidades</li>
-                <li>✅ Suporte prioritário</li>
-                <li>✅ 3 meses sem preocupação</li>
+                <li>✅ <strong>Economia garantida de 12%</strong></li>
+                <li>✅ <strong>Acesso prioritário</strong> a novidades</li>
+                <li>✅ <strong>Suporte prioritário</strong> &lt;12h</li>
+                <li>✅ 3 meses sem se preocupar com pagamento</li>
+                <li>✅ Selo de apoiador no perfil</li>
               </ul>
+              <div style="background:rgba(209,242,90,.15); border:1px solid rgba(209,242,90,.3); border-radius:12px; padding:12px 14px; font-size:12px; line-height:1.5; margin-bottom:18px; color:#D1F25A;">
+                <strong style="color:#D1F25A;">Vantagem:</strong> <span style="color:#fff;">É o plano inteligente. Você economiza, garante 3 meses de foco total no seu dinheiro e ainda tem prioridade no suporte e nas novidades.</span>
+              </div>
               <a href="https://mpago.la/2CiRAfx" target="_blank" style="display:block; text-align:center; background:#D1F25A; color:#000; padding:14px; border-radius:12px; font-weight:900; text-decoration:none;">Assinar Trimestral R$65,70 →</a>
-              <p style="font-size:11px; opacity:.5; text-align:center; margin-top:12px;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos</p>
+              <p style="font-size:11px; opacity:.5; text-align:center; margin-top:12px; color:#C5D6D0;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos</p>
             </div>
+
+          </div>
+
+          <div style="margin-top:28px; padding:16px; background:#F9FAFB; border-radius:12px; font-size:12px; line-height:1.5; opacity:.7; text-align:center;">
+            Dúvidas? Todos os planos têm 7 dias de garantia. Se não gostar, devolvemos 100%.<br/>
+            O <strong>Grátis</strong> é vitalício com limites. Mensal e Trimestral são sem fidelidade.
           </div>
         </div>
       </div>
+
 
       <div id="viewAbout" style="display:none;">
         <div style="max-width:760px;">
@@ -694,7 +770,7 @@ setPersistence(auth, inMemoryPersistence).catch((e) => console.error('Erro ao co
 
 let currentUser = null;
 let authMode = 'login'; // 'login' | 'signup'
-let activeView = 'overview'; // 'overview' | 'month' | 'profile'
+let activeView = 'profile'; // 'overview' | 'month' | 'profile'
 
 const STORAGE_KEY = 'finance-app-data-v3';
 let data = null;
