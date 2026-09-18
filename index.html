@@ -316,15 +316,19 @@
       </button>
       <button class="side-nav-item" id="navOverview">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.6"/><rect x="13" y="3" width="8" height="5" rx="1.6"/><rect x="13" y="10" width="8" height="11" rx="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.6"/></svg>
-        Visão geral
+        Visão Geral
       </button>
       <button class="side-nav-item" id="navMonth">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2.2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
-        <span id="navMonthLabel">Meses</span>
+        <span id="navMonthLabel">Mês</span>
       </button>
       <button class="side-nav-item" id="navPlans">
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        Planos
+        Assinar Plano
+      </button>
+      <button class="side-nav-item" id="navAbout">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Sobre a Plataforma
       </button>
     </nav>
 
@@ -553,6 +557,86 @@
     </div>
   </div>
 </div>
+
+
+      <div id="viewPlans" style="display:none;">
+        <div style="max-width:900px;">
+          <h2 style="font-size:28px; font-weight:900; margin-bottom:8px;">Escolha seu plano</h2>
+          <p style="opacity:.7; margin-bottom:24px;">Desbloqueie todo o potencial do Destiny e tenha controle total do seu dinheiro.</p>
+          
+          <div style="display:flex; flex-direction:column; gap:20px; max-width:480px;">
+            <!-- MENSAL -->
+            <div style="border:2px solid #e5e7eb; border-radius:20px; padding:28px; background:#fff; color:#111;">
+              <h3 style="font-size:22px; font-weight:800; margin:0;">Mensal</h3>
+              <p style="opacity:.6; font-size:13px; margin:6px 0 0;">Flexibilidade total</p>
+              <p style="font-size:36px; font-weight:900; margin:16px 0 4px;">R$24,90<span style="font-size:14px; font-weight:600; opacity:.6;">/mês</span></p>
+              <p style="font-size:12px; opacity:.5; margin-bottom:18px;">Cobrado mensalmente • Cancele quando quiser</p>
+              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px;">
+                <li>✅ Todos os recursos liberados</li>
+                <li>✅ Meses ilimitados</li>
+                <li>✅ Sincronização na nuvem</li>
+                <li>✅ Suporte por e-mail</li>
+              </ul>
+              <a href="https://mpago.la/2CiRAfx" target="_blank" style="display:block; text-align:center; background:#111; color:#fff; padding:14px; border-radius:12px; font-weight:800; text-decoration:none;">Assinar Mensal →</a>
+            </div>
+
+            <!-- TRIMESTRAL - DESTAQUE -->
+            <div style="border:2px solid #D1F25A; border-radius:20px; padding:28px; background:#111; color:#fff; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.15);">
+              <div style="position:absolute; top:-12px; right:20px; background:#D1F25A; color:#000; padding:6px 14px; border-radius:20px; font-size:11px; font-weight:900; letter-spacing:.5px;">MELHOR CUSTO-BENEFÍCIO • -12% OFF</div>
+              <h3 style="font-size:22px; font-weight:800; margin:0;">Trimestral</h3>
+              <p style="opacity:.7; font-size:13px; margin:6px 0 0;">Equivale a R$21,90/mês</p>
+              <p style="font-size:36px; font-weight:900; margin:16px 0 4px;">R$65,70<span style="font-size:14px; font-weight:600; opacity:.7;"> / 3 meses</span></p>
+              <p style="font-size:12px; opacity:.6; margin-bottom:18px;">Economia de R$9 por trimestre • 3 meses sem preocupação</p>
+              <ul style="list-style:none; padding:0; margin:0 0 20px; display:flex; flex-direction:column; gap:10px; font-size:14px;">
+                <li>✅ Tudo do Mensal</li>
+                <li>✅ Economia garantida</li>
+                <li>✅ Acesso prioritário a novidades</li>
+                <li>✅ Suporte prioritário</li>
+                <li>✅ 3 meses sem preocupação</li>
+              </ul>
+              <a href="https://mpago.la/2CiRAfx" target="_blank" style="display:block; text-align:center; background:#D1F25A; color:#000; padding:14px; border-radius:12px; font-weight:900; text-decoration:none;">Assinar Trimestral R$65,70 →</a>
+              <p style="font-size:11px; opacity:.5; text-align:center; margin-top:12px;">🔒 Pagamento 100% seguro via Mercado Pago • Liberação em até 2 minutos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewAbout" style="display:none;">
+        <div style="max-width:760px;">
+          <h2 style="font-size:32px; font-weight:900; margin-bottom:12px;">Sobre a Plataforma</h2>
+          <p style="font-size:18px; opacity:.8; line-height:1.6; margin-bottom:28px;">O <strong>Destiny</strong> — O Destino do seu Dinheiro — nasceu para resolver o que planilhas complicadas não resolvem: <strong>clareza e constância</strong> no controle financeiro pessoal.</p>
+
+          <div style="display:grid; gap:20px; margin-bottom:32px;">
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; background:#fff;">
+              <h3 style="font-size:16px; font-weight:800; margin:0 0 8px;">💡 Por que o Destiny existe?</h3>
+              <p style="margin:0; opacity:.75; line-height:1.6;">A maioria das pessoas sabe quanto ganha, mas não sabe para onde o dinheiro vai. O Destiny transforma receitas, despesas e investimentos em <strong>decisões visíveis</strong>. Você não só registra — você entende o destino de cada real.</p>
+            </div>
+
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; background:#fff;">
+              <h3 style="font-size:16px; font-weight:800; margin:0 0 8px;">🎯 Qual a utilidade real?</h3>
+              <p style="margin:0; opacity:.75; line-height:1.6;">Categorias com limite por valor ou por percentual da renda, meses independentes que não misturam passado com futuro, visão geral acumulada por categoria e por mês, e um painel que mostra de verdade o que sobra. É um sistema pensado para quem quer <strong>parar de apagar incêndio</strong> e começar a construir patrimônio.</p>
+            </div>
+
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; background:#fff;">
+              <h3 style="font-size:16px; font-weight:800; margin:0 0 8px;">🔐 Importância da organização mensal</h3>
+              <p style="margin:0; opacity:.75; line-height:1.6;">No Destiny cada mês é um capítulo. Você pode marcar gastos fixos como aluguel, escola ou mensalidades para repetirem automaticamente quando um novo mês é criado. Isso evita esquecimentos e te dá uma <strong>previsibilidade</strong> que planilhas soltas nunca deram. Se um mês foi ruim, você não carrega a bagunça — você aprende e recomeça organizado.</p>
+            </div>
+
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; background:#fff;">
+              <h3 style="font-size:16px; font-weight:800; margin:0 0 8px;">📊 Visão Geral que importa</h3>
+              <p style="margin:0; opacity:.75; line-height:1.6;">A aba Visão Geral não é só gráfico bonito. É onde você vê o acumulado por categoria em todos os meses, entende seus padrões de consumo e descobre onde estão os vazamentos invisíveis que impedem seu saldo de crescer. Conhecimento gera economia — e economia gera liberdade.</p>
+            </div>
+
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:20px; background:#111; color:#fff;">
+              <h3 style="font-size:16px; font-weight:800; margin:0 0 8px; color:#D1F25A;">🚀 Em resumo</h3>
+              <p style="margin:0; opacity:.85; line-height:1.6;">Destiny não é sobre ser rico. É sobre ter <strong>controle</strong>. Quando você sabe exatamente quanto entra, quanto sai, quanto investe e quanto sobra — e tem isso mês a mês — você deixa de ser refém do dinheiro e passa a decidir o destino dele. Esse é o propósito da plataforma.</p>
+            </div>
+          </div>
+
+          <p style="font-size:13px; opacity:.5; text-align:center;">Feito para quem quer transformar organização em resultado.</p>
+        </div>
+      </div>
+
 
 <div id="tourHighlight" style="display:none;"></div>
 <div id="tourCard" style="display:none;">
@@ -1524,18 +1608,29 @@ function applyView(){
   document.getElementById('viewOverview').style.display = activeView === 'overview' ? 'block' : 'none';
   document.getElementById('viewMonth').style.display = activeView === 'month' ? 'block' : 'none';
   document.getElementById('viewProfile').style.display = activeView === 'profile' ? 'block' : 'none';
+  const vp = document.getElementById('viewPlans');
+  if(vp) vp.style.display = activeView === 'plans' ? 'block' : 'none';
+  const va = document.getElementById('viewAbout');
+  if(va) va.style.display = activeView === 'about' ? 'block' : 'none';
   document.getElementById('navOverview').classList.toggle('active', activeView === 'overview');
   document.getElementById('navMonth').classList.toggle('active', activeView === 'month');
   document.getElementById('navProfile').classList.toggle('active', activeView === 'profile');
+  const np = document.getElementById('navPlans');
+  if(np) np.classList.toggle('active', activeView === 'plans');
+  const na = document.getElementById('navAbout');
+  if(na) na.classList.toggle('active', activeView === 'about');
   document.getElementById('navMonthLabel').textContent = currentMonth ? monthLabel(currentMonth) : 'Mês';
   document.getElementById('navOverview').disabled = profileIncomplete;
   document.getElementById('navMonth').disabled = profileIncomplete;
-  document.getElementById('subtitle').textContent = activeView === 'overview'
+  if(activeView === 'plans') document.getElementById('subtitle').textContent = 'Escolha o melhor plano para você';
+  else if(activeView === 'about') document.getElementById('subtitle').textContent = 'Conheça o propósito do Destiny';
+  else document.getElementById('subtitle').textContent = activeView === 'overview'
     ? 'Visão geral de todos os meses'
     : activeView === 'month'
       ? (currentMonth ? 'Editando ' + monthLabelLong(currentMonth) : '')
       : 'Seus dados pessoais';
 }
+
 
 function updateGreeting(){
   const name = data && data.profileName ? data.profileName.trim() : '';
@@ -1637,6 +1732,10 @@ document.getElementById('btnReplicateFixed')?.addEventListener('click', handleRe
 document.getElementById('navOverview').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'overview'; applyView(); });
 document.getElementById('navMonth').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'month'; applyView(); });
 document.getElementById('navProfile').addEventListener('click', () => { activeView = 'profile'; renderProfileView(); applyView(); });
+document.getElementById('navPlans').addEventListener('click', () => { activeView = 'plans'; applyView(); });
+document.getElementById('navAbout').addEventListener('click', () => { activeView = 'about'; applyView(); });
+document.getElementById('navPlans').addEventListener('click', () => { activeView = 'plans'; applyView(); });
+document.getElementById('navAbout').addEventListener('click', () => { activeView = 'about'; applyView(); });
 document.getElementById('profileSaveBtn').addEventListener('click', saveProfile);
 
 // ---- máscaras dos campos de perfil ----
