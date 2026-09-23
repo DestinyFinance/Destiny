@@ -118,7 +118,7 @@
   .qs-icon.inv { background: var(--primary-soft); color: var(--primary); }
   .qs-item p.label { margin: 0; font-size: 12px; color: var(--ink-soft); }
   .qs-item p.value { margin: 2px 0 0; font-size: 20px; font-weight: 500; }
-  .qs-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .qs-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding: 18px 20px; border: 1.5px solid #E5E7EB; background:#ffffff; border-radius:16px; }
   .qs-foot p.label { margin: 0 0 3px; font-size: 12px; color: var(--ink-soft); }
   .qs-foot p.value { margin: 0; font-size: 24px; font-weight: 500; }
   .qs-foot a.link { font-size: 12.5px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 3px; }
@@ -144,9 +144,12 @@
     .topbar { padding:16px 16px 8px; }
     .content { padding:12px 12px 24px; width:100%; max-width:100%; }
     .grid { grid-template-columns:1fr; gap:12px; }
-    .quickstats { padding:16px; margin-bottom:12px; }
-    .qs-row { grid-template-columns:1fr 1fr; gap:10px; }
-    .qs-item .value { font-size:15px; }
+    .quickstats { padding:18px 16px; margin-bottom:16px; border-radius:20px !important; }
+    .qs-row { grid-template-columns:1fr; gap:12px; }
+    .qs-item { padding:16px 18px !important; flex-direction:row !important; align-items:center; gap:14px; border-radius:14px; }
+    .qs-item .label { margin-bottom:2px !important; }
+    .qs-item .value { font-size:20px !important; font-weight:800 !important; }
+    .qs-foot { padding:16px 18px !important; border-radius:14px !important; }
     .panel { padding:12px 12px; }
     .panel h2 { font-size:14px; }
     #panelDistTable { overflow-x:auto; }
@@ -341,9 +344,9 @@
   .qs-item:hover { background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
   .qs-item .label { font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#6B7280; margin-bottom:10px; }
   .qs-item .value { font-size:28px !important; font-weight:800 !important; letter-spacing:-0.03em; }
-  .qs-foot { background:#111827; color:#fff; border-radius:14px; padding:18px 20px; margin-top:16px; display:flex; justify-content:space-between; align-items:center; }
-  .qs-foot .label { color:#9CA3AF; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; font-weight:600; }
-  .qs-foot .value { color:#fff !important; font-size:28px !important; font-weight:800 !important; }
+  .qs-foot { background:#ffffff; color:#111827; border-radius:16px; padding:18px 20px; margin-top:16px; display:flex; justify-content:space-between; align-items:center; border:1.5px solid #E5E7EB; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+  .qs-foot .label { color:#6B7280; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; }
+  .qs-foot .value { color:#111827 !important; font-size:28px !important; font-weight:800 !important; }
   .side-nav-item { border-radius:12px !important; height:44px !important; font-weight:500 !important; transition: all 0.15s ease; }
   .side-nav-item:hover { background:#F3F4F6 !important; transform: translateX(2px); }
   .side-nav-item.active { background:#111827 !important; color:#fff !important; font-weight:600 !important; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
@@ -688,17 +691,30 @@
               </div>
             </div>
 
-            <div style="background:#fff; border:1.5px solid #e5e7eb; border-radius:20px; padding:24px;">
+            <div style="background:#fff; border:1.5px solid #e5e7eb; border-radius:20px; padding:24px; box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 8px 24px -12px rgba(0,0,0,0.08);">
               <div style="display:flex; gap:12px; align-items:start;">
-                <div style="width:40px; height:40px; border-radius:12px; background:#FFF7E6; display:flex; align-items:center; justify-content:center; font-size:20px;">🎯</div>
-                <div>
-                  <h3 style="font-size:16px; font-weight:800; margin:0 0 8px;">Como funciona na prática?</h3>
-                  <p style="font-size:14px; line-height:1.7; opacity:.75; margin:0 0 12px;">Você cria categorias (Essencial, Lazer, Investimentos, Quitação de dívidas...) e define um <strong>% da sua renda</strong> para cada uma. Depois lança receitas, despesas e investimentos dentro delas.</p>
-                  <ul style="font-size:13px; line-height:1.8; opacity:.75; margin:0; padding-left:18px;">
-                    <li><strong>Meses independentes:</strong> Cada mês é um capítulo. Se um mês foi ruim, você não carrega a bagunça.</li>
-                    <li><strong>Gastos fixos automáticos:</strong> Marque aluguel, gás, escola, mensalidades como fixo e ele repete sozinho no próximo mês.</li>
-                    <li><strong>Limite por % ou R$:</strong> Você decide se a categoria tem teto em reais ou em percentual da renda.</li>
-                  </ul>
+                <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#FFF7E6,#FFEFD0); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🎯</div>
+                <div style="flex:1;">
+                  <h3 style="font-size:17px; font-weight:800; margin:0 0 10px; letter-spacing:-0.02em;">Como funciona na prática?</h3>
+                  <p style="font-size:14px; line-height:1.7; opacity:.8; margin:0 0 16px;">Você cria categorias (Essencial, Lazer, Investimentos, Quitação de dívidas...) e define um <strong>% da sua renda</strong> para cada uma. Depois lança receitas, despesas e investimentos dentro delas.</p>
+                  <div style="display:grid; gap:12px; margin-bottom:20px;">
+                    <div style="display:flex; gap:10px; padding:12px 14px; background:#F9FAFB; border-radius:12px; border:1px solid #F3F4F6;">
+                      <span style="width:28px; height:28px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">1</span>
+                      <div><strong style="font-size:13px;">Meses independentes:</strong><p style="font-size:12.5px; line-height:1.5; opacity:.7; margin:2px 0 0;">Cada mês é um capítulo. Se um mês foi ruim, você não carrega a bagunça.</p></div>
+                    </div>
+                    <div style="display:flex; gap:10px; padding:12px 14px; background:#F9FAFB; border-radius:12px; border:1px solid #F3F4F6;">
+                      <span style="width:28px; height:28px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">2</span>
+                      <div><strong style="font-size:13px;">Gastos fixos automáticos:</strong><p style="font-size:12.5px; line-height:1.5; opacity:.7; margin:2px 0 0;">Marque aluguel, gás, escola, mensalidades como fixo e ele repete sozinho no próximo mês.</p></div>
+                    </div>
+                    <div style="display:flex; gap:10px; padding:12px 14px; background:#F9FAFB; border-radius:12px; border:1px solid #F3F4F6;">
+                      <span style="width:28px; height:28px; border-radius:50%; background:#111827; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;">3</span>
+                      <div><strong style="font-size:13px;">Limite por % ou R$:</strong><p style="font-size:12.5px; line-height:1.5; opacity:.7; margin:2px 0 0;">Você decide se a categoria tem teto em reais ou em percentual da renda.</p></div>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="document.querySelectorAll('.side-nav-item')[1].click()" style="background:#111827; color:#fff; border:none; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">+ Criar primeira categoria</button>
+                    <button onclick="document.querySelectorAll('.side-nav-item')[0].click()" style="background:#fff; color:#111827; border:1.5px solid #E5E7EB; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer;">Ver visão geral</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2401,15 +2417,19 @@ authSubmit.addEventListener('click', async () => {
 
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       try {
-        // Reivindica o CPF pra este usuário. A regra do Firestore só permite criar
-        // este documento se ele ainda não existir — protege contra corrida entre
-        // dois cadastros simultâneos com o mesmo CPF.
         await setDoc(cpfRef, { uid: cred.user.uid, createdAt: new Date().toISOString() });
         await setDoc(doc(db, 'profiles', cred.user.uid), {
           nome, cpf: cpfDigits, telefone, email, createdAt: new Date().toISOString()
         });
+        // Desloga após cadastro e manda para login conforme solicitado
+        await signOut(auth);
+        setAuthMode('login');
+        setAuthInfo('Conta criada com sucesso! Agora faça login para começar.');
+        authEmail.value = email;
+        authPass.value = '';
+        authSubmit.disabled = false;
+        return;
       } catch (claimError) {
-        // Alguém reivindicou esse CPF no meio do processo: desfaz a conta criada.
         await cred.user.delete().catch(() => {});
         setAuthError('Este CPF acabou de ser cadastrado por outra conta. Tente entrar em vez de criar uma nova.');
         authSubmit.disabled = false;
@@ -2591,7 +2611,7 @@ onAuthStateChanged(auth, async (user) => {
     updateGreeting();
     renderAll();
     document.getElementById('tourFab').style.display = 'flex';
-    if (!profileIncomplete && !data.tourSeen) setTimeout(startTour, 500);
+    if (!profileIncomplete) { if (!data.tourSeen) setTimeout(startTour, 800); else { /* already seen, but allow manual */ } }
   } else {
     document.getElementById('trialLockScreen').style.display = 'none';
     document.getElementById('authGate').style.display = 'block';
