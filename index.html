@@ -2829,5 +2829,95 @@ if(originalPersistNow){
 })();
 </script>
 
+
+<script>
+// Parser de fala que conecta com categorias internas
+function parseVoiceExpense(text){
+  if(!text) return null;
+  const lower = text.toLowerCase();
+  // Extrai valor
+  let valor = 0;
+  const valorMatch = lower.match(/(?:r\$\s*)?(\d+(?:[\.,]\d+)?)/);
+  if(valorMatch) valor = parseFloat(valorMatch[1].replace(',', '.'));
+  
+  // Detecta categoria - procura nas categorias existentes do mês atual
+  let catNome = null;
+  let subCatNome = null;
+  
+  // Procura por palavras-chave
+  if(lower.includes('não essencial') || lower.includes('nao essencial')) catNome = 'não essencial';
+  else if(lower.includes('essencial')) catNome = 'essencial';
+  else if(lower.includes('lazer')) catNome = 'lazer';
+  else if(lower.includes('invest')) catNome = 'investimento';
+  else if(lower.includes('aliment')) catNome = 'alimentação';
+  else if(lower.includes('automóvel') || lower.includes('carro')) catNome = 'automóvel';
+  
+  // Subcategoria
+  if(lower.includes('mercado')) subCatNome = 'mercado';
+  else if(lower.includes('ifood') || lower.includes('restaurante')) subCatNome = 'restaurante';
+  else if(lower.includes('uber') || lower.includes('combust')) subCatNome = 'combustível';
+  
+  return { valor, catNome, subCatNome, raw: text };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('voiceTextInput');
+  const btn = document.getElementById('voiceParseBtn');
+  const preview = document.getElementById('voicePreview');
+  
+  if(!input || !btn) return;
+  
+  function updatePreview(){
+    const parsed = parseVoiceExpense(input.value);
+    if(!parsed || !parsed.valor){
+      preview.style.display='none';
+      return;
+    }
+    preview.style.display='block';
+    preview.innerHTML = `
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span style="background:#111827; color:#fff; padding:4px 10px; border-radius:99px; font-size:11px; font-weight:600;">R$ ${parsed.valor.toFixed(2)}</span>
+        ${parsed.catNome ? `<span style="background:#ECFDF5; color:#059669; padding:4px 10px; border-radius:99px; font-size:11px;">📁 ${parsed.catNome}</span>` : '<span style="color:#9CA3AF; font-size:11px;">categoria não detectada</span>'}
+        ${parsed.subCatNome ? `<span style="background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:99px; font-size:11px;">🏷️ ${parsed.subCatNome}</span>` : ''}
+      </div>
+      <div style="margin-top:8px; font-size:11px; color:#6B7280;">Vai para: <b>${parsed.catNome || 'categoria'}</b> → <b>${parsed.subCatNome || 'item'}</b> no mês atual</div>
+    `;
+  }
+  
+  input.addEventListener('input', updatePreview);
+  btn.addEventListener('click', () => {
+    const parsed = parseVoiceExpense(input.value);
+    if(!parsed || !parsed.valor){
+      alert('Digite um valor, ex: gastei 50 em não essencial mercado');
+      return;
+    }
+    // Aqui conecta com as categorias reais do Destiny
+    // Procura categoria existente ou cria
+    if(typeof data !== 'undefined' && data && typeof currentMonth !== 'undefined'){
+      const monthData = data.months[currentMonth];
+      if(monthData){
+        let cat = monthData.categories.find(c => c.nome.toLowerCase().includes((parsed.catNome||'').toLowerCase()));
+        if(!cat && parsed.catNome){
+          // cria categoria se não existir
+          cat = { id: 'cat_'+Date.now(), nome: parsed.catNome, pct:0, tipo:'gasto', items:[] };
+          monthData.categories.push(cat);
+        }
+        if(!cat) cat = monthData.categories[0];
+        
+        // Adiciona item
+        cat.items.push({ id: 'item_'+Date.now(), nome: parsed.subCatNome || 'Gasto', valor: parsed.valor });
+        if(typeof saveData === 'function') saveData();
+        if(typeof render === 'function') render();
+        input.value='';
+        preview.style.display='none';
+        alert(`Adicionado: R$ ${parsed.valor} em ${cat.nome} → ${parsed.subCatNome || 'Gasto'}`);
+      }
+    } else {
+      alert(`Preview: R$ ${parsed.valor} iria para ${parsed.catNome} → ${parsed.subCatNome}`);
+    }
+  });
+});
+</script>
+
 </body>
 </html>
