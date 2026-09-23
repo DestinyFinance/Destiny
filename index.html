@@ -128,19 +128,22 @@
   @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } .qs-row { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 760px) { 
     #appRoot { flex-direction: column; } 
-    .sidebar { width: 100%; height: auto; position: sticky; top:0; z-index:20; flex-direction: column; background: var(--surface); border-right:none; border-bottom:1px solid var(--line); padding-bottom:8px; }
-    .sidebar-brand { padding:12px 16px 8px; }
-    .side-nav { flex-direction: row; overflow-x:auto; padding:4px 8px; gap:4px; }
-    .side-nav-item { flex:0 0 auto; height:36px; font-size:12.5px; padding:0 12px; }
-    .sidebar-months { padding:8px 12px 4px; border-top:1px solid var(--line); margin-top:4px; flex:none; }
-    .sidebar-label { margin:0 4px 6px; }
-    .months-list { flex-direction:row; overflow-x:auto; overflow-y:hidden; max-height:none; gap:6px; padding-bottom:4px; }
-    .month-tab { flex:0 0 auto; min-width:84px; height:34px; }
-    .sidebar-footer { flex-direction:row; align-items:center; padding:8px 12px; }
-    .sidebar-user { flex:1; }
-    .main-col { padding:0; }
+    .sidebar { width:100% !important; max-width:100% !important; height:auto !important; position:relative !important; top:auto !important; flex-direction:column !important; background:var(--surface); border-right:none; border-bottom:1px solid var(--line); padding-bottom:8px; display:flex !important; left:0; right:0; }
+    .sidebar-brand { padding:12px 16px 8px; width:100%; }
+    .side-nav { display:flex !important; flex-direction:row !important; overflow-x:auto !important; overflow-y:hidden; padding:8px 12px; gap:6px; width:100%; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .side-nav::-webkit-scrollbar { display:none; }
+    .side-nav-item { flex:0 0 auto; height:38px; font-size:12.5px; padding:0 14px; white-space:nowrap; border:1px solid var(--line); background:var(--surface); }
+    .side-nav-item.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .sidebar-months { padding:8px 12px 8px; border-top:1px solid var(--line); margin-top:4px; flex:none; width:100%; }
+    .sidebar-label { margin:0 4px 6px; display:block; }
+    .months-list { display:flex !important; flex-direction:row !important; overflow-x:auto !important; overflow-y:hidden; max-height:none; gap:8px; padding-bottom:6px; width:100%; -webkit-overflow-scrolling:touch; }
+    .months-list::-webkit-scrollbar { display:none; }
+    .month-tab { flex:0 0 auto; min-width:90px; height:36px; }
+    .sidebar-footer { flex-direction:row; align-items:center; padding:10px 12px; width:100%; flex-wrap:wrap; gap:8px; }
+    .sidebar-user { flex:1; min-width:0; }
+    .main-col { padding:0; width:100%; }
     .topbar { padding:16px 16px 8px; }
-    .content { padding:12px 12px 24px; }
+    .content { padding:12px 12px 24px; width:100%; max-width:100%; }
     .grid { grid-template-columns:1fr; gap:12px; }
     .quickstats { padding:16px; margin-bottom:12px; }
     .qs-row { grid-template-columns:1fr 1fr; gap:10px; }
@@ -151,6 +154,8 @@
     .dist { min-width:360px; }
     .profile-grid { grid-template-columns:1fr; }
     .line-item input.money-input { width:90px; font-size:13px; }
+    /* Garante que visão geral apareça no mobile */
+    #viewOverview, #viewMonth, #viewPlans { width:100%; max-width:100%; }
   }
   @media (max-width: 400px){
     .qs-row { grid-template-columns:1fr; }
@@ -516,7 +521,9 @@
           <div class="quickstats-head">
             <h3 id="qsTitle">Resumo do mês</h3>
             <div style="display:flex; align-items:center; gap:8px;">
-              <button class="small" id="btnReplicateFixed" title="Replicar valores fixos de outro mês" style="display:inline-flex; align-items:center; gap:5px; height:28px; font-size:12px; cursor:pointer;">
+              
+    <button id="btnRecover" class="small" style="background:#FEF3C7; border:1px solid #F59E0B; color:#92400E; height:28px; font-size:11px; display:none;">♻️ Recuperar dados</button>
+<button class="small" id="btnReplicateFixed" title="Replicar valores fixos de outro mês" style="display:inline-flex; align-items:center; gap:5px; height:28px; font-size:12px; cursor:pointer;">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Replicar fixos
               </button>
               <button class="small btn-danger" id="btnDeleteMonth" title="Excluir este mês" style="display:inline-flex; align-items:center; gap:5px; height:28px; font-size:12px; cursor:pointer;">
@@ -1163,7 +1170,27 @@ function replicateFixedIntoMonth(targetYm, sourceYm){
 
 function currentMonthData(){
   ensureMonth(currentMonth);
-  return data.months[currentMonth];
+  const md = data.months[currentMonth];
+  // Auto-recuperação: se categorias ficaram vazias mas existe outro mês com categorias, restaura
+  if(!md.categories || md.categories.length===0){
+    console.warn('Categorias vazias detectadas, tentando recuperar...');
+    const otherMonths = Object.keys(data.months).filter(m=>m!==currentMonth).sort().reverse();
+    for(const ym of otherMonths){
+      const other = data.months[ym];
+      if(other && other.categories && other.categories.length>0){
+        console.log('Recuperando categorias de', ym);
+        md.categories = other.categories.map(c=>({ id: c.id, nome: c.nome, pct: c.pct, tipo: c.tipo, items: (c.items||[]).map(i=>({...i})) }));
+        saveData();
+        break;
+      }
+    }
+    // Se ainda vazio, cria padrão
+    if(!md.categories || md.categories.length===0){
+      md.categories = blankCategories();
+      saveData();
+    }
+  }
+  return md;
 }
 
 function totalIncome(md){
@@ -2101,6 +2128,31 @@ function endTour(){
     saveData();
   }
 }
+
+
+// Botão de recuperação visível se categorias vazias
+setTimeout(()=>{
+  const md = data.months[currentMonth];
+  if(!md || !md.categories || md.categories.length===0){
+    const btn = document.getElementById('btnRecover');
+    if(btn) btn.style.display='inline-flex';
+  }
+}, 1000);
+document.getElementById('btnRecover')?.addEventListener('click', async ()=>{
+  const months = Object.keys(data.months).sort();
+  let msg = 'Meses encontrados:\n' + months.join('\n') + '\n\nQual mês tem seus dados corretos? (ex: 2025-09)';
+  const ym = prompt(msg, months[months.length-1] || '');
+  if(!ym || !data.months[ym]) { alert('Mês não encontrado'); return; }
+  const source = data.months[ym];
+  const target = data.months[currentMonth];
+  if(confirm(`Copiar categorias e lançamentos de ${ym} para ${currentMonth}?`)){
+    target.categories = source.categories.map(c=>({ id: uid(), nome: c.nome, pct: c.pct, tipo: c.tipo, items: (c.items||[]).map(i=>({ id: uid(), nome: i.nome, valor: i.valor, fixo: !!i.fixo, reservado: !!i.reservado })) }));
+    target.incomeItems = source.incomeItems.map(i=>({ id: uid(), nome: i.nome, valor: i.valor, fixo: !!i.fixo, tipo: i.tipo||'regular', destinoCatId: '' }));
+    await persistNow();
+    renderAll();
+    alert('Recuperado! Recarregue se necessário.');
+  }
+});
 
 document.getElementById('tourNextBtn').addEventListener('click', () => {
   if (tourStepIndex >= TOUR_STEPS.length - 1) { endTour(); return; }
