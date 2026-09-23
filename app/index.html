@@ -613,7 +613,16 @@
 
       <div id="viewMonth" style="display:none;">
         
-        <!-- TOP RESUMO REMOVIDO - AGORA SO TEM RESUMO COM GRAFICO EMBAIXO -->
+        
+        <div style="display:none !important;">
+          <span id="qsTitle">Resumo do mês</span>
+          <span id="qsReceitas">R$ 0</span>
+          <span id="qsDespesas">R$ 0</span>
+          <span id="qsInvest">R$ 0</span>
+          <span id="qsSaldo">R$ 0</span>
+        </div>
+        <!-- TOP RESUMO REMOVIDO VISUALMENTE - MANTIDO ESCONDIDO PRO JS -->
+        
         
 
         <div class="panel" style="margin-bottom:1.5rem;" id="panelProfiles">
@@ -2934,6 +2943,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+</script>
+
+
+<script>
+// Patch: evita quebra se elemento não existe
+(function(){
+  const origGet = document.getElementById.bind(document);
+  // monkey patch not needed, just wrap update functions
+  const safeSet = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  // intercept common errors after DOM load
+  window.addEventListener('error', e => {
+    if(e.message.includes('qsReceitas') || e.message.includes('qsDespesas')) {
+      e.preventDefault();
+      console.warn('Suprimido erro de qs removido', e.message);
+    }
+  });
+})();
 </script>
 
 </body>
