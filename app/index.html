@@ -3023,49 +3023,5 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
-
-<script>
-// V38 BRIDGE - auto login vindo da landing
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromLanding = urlParams.get('from_landing') === '1' || localStorage.getItem('destiny_from_landing') === '1';
-    if(!fromLanding) return;
-    
-    const bridgeEmail = localStorage.getItem('destiny_bridge_email');
-    const bridgePass = localStorage.getItem('destiny_bridge_pass');
-    
-    if(bridgeEmail) {
-      const emailInput = document.getElementById('authEmail');
-      if(emailInput) emailInput.value = bridgeEmail;
-    }
-    if(bridgePass) {
-      const passInput = document.getElementById('authPass');
-      if(passInput) passInput.value = bridgePass;
-    }
-    
-    // Se tem email e senha, tenta logar automaticamente após 500ms
-    if(bridgeEmail && bridgePass) {
-      setTimeout(() => {
-        const btn = document.getElementById('authSubmit');
-        if(btn) {
-          console.log('Auto-login vindo da landing...');
-          btn.click();
-          // Limpa flag após tentativa
-          setTimeout(() => {
-            localStorage.removeItem('destiny_from_landing');
-            // Mantem email mas limpa senha por segurança após 2s
-            setTimeout(() => localStorage.removeItem('destiny_bridge_pass'), 2000);
-          }, 1000);
-        }
-      }, 600);
-    } else {
-      // Só veio da landing sem credenciais, apenas foca no email
-      localStorage.removeItem('destiny_from_landing');
-    }
-  } catch(e){ console.log('Bridge error', e); }
-});
-</script>
-
 </body>
 </html>
