@@ -1412,17 +1412,14 @@ function renderCategories(){
     return;
   }
 
-  // Ordena por maior limite (como pediu)
-  const catsOrdenadas = md.categories.map(cat=>{
-    const limiteOriginal = limitesOriginais[cat.id];
-    const reservadoCat = (cat.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
-    let limiteCalc = limiteOriginal;
-    if(cat.tipo==='gasto' && reservadoCat>0) limiteCalc = limiteOriginal - reservadoCat;
-    if((cat.tipo==='investimento'||cat.tipo==='reserva') && totalReservadoGasto>0 && cat === md.categories.find(c=>c.tipo==='investimento')) limiteCalc = limiteOriginal + totalReservadoGasto;
-    return {cat, limiteCalc};
-  }).sort((a,b)=> b.limiteCalc - a.limiteCalc);
+  // Ordena por maior limite para exibição (não quebra nada)
+  const catsOrdenadas = md.categories.slice().sort((a,b)=>{
+    const limA = (regularIncome(md) * (a.pct||0) / 100) + extraIncomeForCategory(md, a.id);
+    const limB = (regularIncome(md) * (b.pct||0) / 100) + extraIncomeForCategory(md, b.id);
+    return limB - limA;
+  });
   
-  catsOrdenadas.forEach(({cat}) => {
+  catsOrdenadas.forEach((cat) => {
     const items = (cat.items || []).slice().sort((a,b)=> (b.valor||0) - (a.valor||0));
     const baseLimit = regularIncome(md) * (cat.pct||0) / 100;
     const extraForCat = extraIncomeForCategory(md, cat.id);
@@ -1552,17 +1549,14 @@ function renderSummary(){
   const reg = regularIncome(md);
   const ext = extraIncome(md);
   let totalGasto = 0, totalPct = 0;
-  // Ordena por maior limite (como pediu)
-  const catsOrdenadas = md.categories.map(cat=>{
-    const limiteOriginal = limitesOriginais[cat.id];
-    const reservadoCat = (cat.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
-    let limiteCalc = limiteOriginal;
-    if(cat.tipo==='gasto' && reservadoCat>0) limiteCalc = limiteOriginal - reservadoCat;
-    if((cat.tipo==='investimento'||cat.tipo==='reserva') && totalReservadoGasto>0 && cat === md.categories.find(c=>c.tipo==='investimento')) limiteCalc = limiteOriginal + totalReservadoGasto;
-    return {cat, limiteCalc};
-  }).sort((a,b)=> b.limiteCalc - a.limiteCalc);
+  // Ordena por maior limite para exibição (não quebra nada)
+  const catsOrdenadas = md.categories.slice().sort((a,b)=>{
+    const limA = (regularIncome(md) * (a.pct||0) / 100) + extraIncomeForCategory(md, a.id);
+    const limB = (regularIncome(md) * (b.pct||0) / 100) + extraIncomeForCategory(md, b.id);
+    return limB - limA;
+  });
   
-  catsOrdenadas.forEach(({cat}) => {
+  catsOrdenadas.forEach((cat) => {
     totalPct += cat.pct || 0;
     totalGasto += totalEntries(cat.items);
   });
@@ -1629,17 +1623,14 @@ function renderDistTable(){
   
   let reservadoJaAdicionadoLimite = false;
   
-  // Ordena por maior limite (como pediu)
-  const catsOrdenadas = md.categories.map(cat=>{
-    const limiteOriginal = limitesOriginais[cat.id];
-    const reservadoCat = (cat.items||[]).filter(i=>i.reservado).reduce((s,i)=>s+(i.valor||0),0);
-    let limiteCalc = limiteOriginal;
-    if(cat.tipo==='gasto' && reservadoCat>0) limiteCalc = limiteOriginal - reservadoCat;
-    if((cat.tipo==='investimento'||cat.tipo==='reserva') && totalReservadoGasto>0 && cat === md.categories.find(c=>c.tipo==='investimento')) limiteCalc = limiteOriginal + totalReservadoGasto;
-    return {cat, limiteCalc};
-  }).sort((a,b)=> b.limiteCalc - a.limiteCalc);
+  // Ordena por maior limite para exibição (não quebra nada)
+  const catsOrdenadas = md.categories.slice().sort((a,b)=>{
+    const limA = (regularIncome(md) * (a.pct||0) / 100) + extraIncomeForCategory(md, a.id);
+    const limB = (regularIncome(md) * (b.pct||0) / 100) + extraIncomeForCategory(md, b.id);
+    return limB - limA;
+  });
   
-  catsOrdenadas.forEach(({cat}) => {
+  catsOrdenadas.forEach((cat) => {
     const limiteOriginal = limitesOriginais[cat.id];
     let limiteExibido = limiteOriginal;
     let gastoExibido = totalEntries(cat.items);
