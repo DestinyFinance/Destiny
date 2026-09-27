@@ -469,43 +469,55 @@
 
 
 <style>
-/* V50 - TOPO 100% PERFEITO + ENTRADAS COM VALOR VISIVEL NO CELULAR */
+/* V51 - ENTRADAS IGUAL DEMAIS CATEGORIAS */
 @media (max-width: 768px) {
-  /* Topo continua 100% */
-  #profileView, #overviewView, .topbar, .qs-row, .stat-grid {
-    zoom: 1 !important;
-    width: 100% !important;
-  }
+  /* Topo 100% perfeito */
+  #profileView, .topbar, .qs-row { width: 100% !important; zoom: 1 !important; }
   
-  /* Entradas - volta menor mas com valor VISIVEL */
-  #panelIncome {
+  /* TODOS os paineis - 94% centralizado menor (topo continua 100%) */
+  #panelIncome, #panelCategories, #panelDistTable, #panelSummary {
     width: 94% !important;
-    margin: 0 auto !important;
+    margin: 12px auto !important;
     zoom: 0.92 !important;
     box-sizing: border-box !important;
+  }
+  
+  /* ENTRADAS vira 1 card só igual Investimentos/Essencial */
+  #panelIncome {
+    background: #fff !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-left: 4px solid #0F172A !important; /* barra lateral igual categorias */
+    border-radius: 16px !important;
+    padding: 14px 12px !important;
   }
   
   #panelIncome #incomeList {
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 0 !important;
+    margin-top: 12px !important;
   }
   
+  /* Cada linha de entrada = linha simples dentro do card, igual Férias dentro de Investimentos */
   #panelIncome .line-item {
     display: grid !important;
-    grid-template-columns: 1fr 92px 30px 22px !important;
+    grid-template-columns: 1fr auto auto !important;
     grid-template-rows: auto auto !important;
-    gap: 8px 6px !important;
+    gap: 6px 8px !important;
     align-items: center !important;
+    padding: 10px 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
     width: 100% !important;
-    padding: 10px 8px !important;
-    background: #F8FAF9 !important;
-    border-radius: 12px !important;
-    border: 1px solid #E6ECE8 !important;
-    box-sizing: border-box !important;
   }
   
-  /* Nome - linha 1 coluna 1 */
+  #panelIncome .line-item:last-child {
+    border-bottom: none !important;
+  }
+  
+  /* Linha 1: Nome + Valor + botoes - igual Essencial: Mãe/Pai R$300 */
   #panelIncome .line-item input[type="text"]:first-child {
     grid-column: 1 / 2 !important;
     grid-row: 1 / 2 !important;
@@ -515,84 +527,67 @@
     border: none !important;
     padding: 0 !important;
     min-width: 0 !important;
-    width: 100% !important;
   }
   
-  /* Select Regular/Extra - linha 1 coluna 2-3 ou linha 2 */
-  #panelIncome .line-item .inc-type-select {
-    grid-column: 1 / 3 !important;
-    grid-row: 2 / 3 !important;
-    height: 30px !important;
-    font-size: 11px !important;
-    border-radius: 999px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  /* Destino - quando tem */
-  #panelIncome .line-item.is-extra .inc-type-select {
-    grid-column: 1 / 2 !important;
-    grid-row: 2 / 3 !important;
-  }
-  #panelIncome .line-item.is-extra .inc-dest-select {
-    grid-column: 2 / 3 !important;
-    grid-row: 2 / 3 !important;
-    height: 30px !important;
-    font-size: 11px !important;
-    border-radius: 999px !important;
-    width: 100% !important;
-  }
-  
-  /* VALOR R$ - SEMPRE VISIVEL - linha 1 colunas 2-4 */
   #panelIncome .line-item .money-input {
     grid-column: 2 / 3 !important;
     grid-row: 1 / 2 !important;
-    width: 92px !important;
-    min-width: 92px !important;
-    max-width: 92px !important;
-    height: 28px !important;
-    font-size: 12px !important;
+    width: auto !important;
+    min-width: 72px !important;
+    max-width: 90px !important;
+    height: auto !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
-    background: #fff !important;
-    border: 1px solid #111 !important;
-    border-radius: 8px !important;
-    padding: 0 6px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
     text-align: right !important;
     display: block !important;
     visibility: visible !important;
-    opacity: 1 !important;
   }
   
-  /* Botoes */
-  #panelIncome .line-item .pin-toggle {
-    grid-column: 3 / 4 !important;
-    grid-row: 1 / 2 !important;
-    width: 26px !important;
+  /* Selects - segunda linha, estilo pílula verde igual no print */
+  #panelIncome .line-item .inc-type-select,
+  #panelIncome .line-item .inc-dest-select {
     height: 26px !important;
+    font-size: 11px !important;
+    border-radius: 999px !important;
+    background: #E6F4EA !important;
+    border: 1px solid #B7E0C1 !important;
+    color: #0F5C2E !important;
+    padding: 0 8px !important;
+    max-width: 100% !important;
   }
+  
+  #panelIncome .line-item .inc-type-select {
+    grid-column: 1 / 2 !important;
+    grid-row: 2 / 3 !important;
+    width: fit-content !important;
+  }
+  
+  #panelIncome .line-item.is-extra .inc-type-select {
+    grid-column: 1 / 2 !important;
+  }
+  #panelIncome .line-item.is-extra .inc-dest-select {
+    grid-column: 2 / 4 !important;
+    grid-row: 2 / 3 !important;
+    width: fit-content !important;
+  }
+  
+  /* Botões pequenos igual categorias */
+  #panelIncome .line-item .pin-toggle,
   #panelIncome .line-item .ghost {
-    grid-column: 4 / 5 !important;
-    grid-row: 1 / 2 !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 22px !important;
+    height: 22px !important;
+    background: #F1F5F9 !important;
+    border-radius: 6px !important;
+    border: none !important;
   }
+  #panelIncome .line-item .pin-toggle { grid-column: 3 / 4 !important; grid-row: 1 / 2 !important; }
+  #panelIncome .line-item .ghost { grid-column: 4 / 5 !important; grid-row: 1 / 2 !important; }
   
-  /* Para regular, botoes na linha 2 */
-  #panelIncome .line-item:not(.is-extra) .pin-toggle {
-    grid-column: 3 / 4 !important;
-    grid-row: 2 / 3 !important;
-  }
-  #panelIncome .line-item:not(.is-extra) .ghost {
-    grid-column: 4 / 5 !important;
-    grid-row: 2 / 3 !important;
-  }
-  
-  /* Distribuição e Tabela - 94% centralizado como antes */
-  #panelCategories, #panelDistTable, #panelSummary {
-    width: 94% !important;
-    margin: 0 auto !important;
-    zoom: 0.92 !important;
-  }
+  #panelIncome .line-item:not(.is-extra) .pin-toggle { grid-row: 1 / 2 !important; }
+  #panelIncome .line-item:not(.is-extra) .ghost { grid-row: 1 / 2 !important; }
 }
 </style>
 
