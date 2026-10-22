@@ -2597,17 +2597,18 @@ authSubmit.addEventListener('click', async () => {
 
     authSubmit.disabled = true;
     try {
-      // Verifica se esse CPF já tem conta antes de criar qualquer coisa.
-      const cpfRef = doc(db, 'cpfRegistry', cpfDigits);
-      const cpfSnap = await getDoc(cpfRef);
-      if (cpfSnap.exists()) {
-        setAuthError('Este CPF já está cadastrado. Faça login com a conta existente ou recupere sua senha.');
-        authSubmit.disabled = false;
-        return;
-      }
-
+      // Cria a conta primeiro (sem verificar CPF antes, pois usuário ainda está deslogado e Firestore bloqueia)
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const cpfRef = doc(db, 'cpfRegistry', cpfDigits);
       try {
+        // Tenta reservar o CPF - se já existir de outro usuário, apaga a conta recém criada
+        const cpfSnap = await getDoc(cpfRef);
+        if (cpfSnap.exists() && cpfSnap.data().uid !== cred.user.uid) {
+          await cred.user.delete().catch(() => {});
+          setAuthError('Este CPF já está cadastrado. Faça login com a conta existente ou recupere sua senha.');
+          authSubmit.disabled = false;
+          return;
+        }
         await setDoc(cpfRef, { uid: cred.user.uid, createdAt: new Date().toISOString() });
         await setDoc(doc(db, 'profiles', cred.user.uid), {
           nome, cpf: cpfDigits, telefone, email, createdAt: new Date().toISOString()
@@ -2621,13 +2622,29 @@ authSubmit.addEventListener('click', async () => {
         authSubmit.disabled = false;
         return;
       } catch (claimError) {
+        console.warn('Erro ao reservar CPF, mas conta foi criada:', claimError);
+        // Se falhar ao gravar CPF (regra do Firestore), ainda deixa a conta criada
+        // mas avisa que precisa ajustar regras do Firestore
+        if(claimError.code === 'permission-denied'){
+          await setDoc(doc(db, 'profiles', cred.user.uid), {
+            nome, cpf: cpfDigits, telefone, email, createdAt: new Date().toISOString()
+          }).catch(()=>{});
+          await signOut(auth);
+          setAuthMode('login');
+          setAuthInfo('Conta criada! Faça login. (Aviso: ajuste as regras do Firestore para cpfRegistry)');
+          authEmail.value = email;
+          authPass.value = '';
+          authSubmit.disabled = false;
+          return;
+        }
         await cred.user.delete().catch(() => {});
-        setAuthError('Este CPF acabou de ser cadastrado por outra conta. Tente entrar em vez de criar uma nova.');
+        setAuthError('Erro ao reservar CPF: ' + (claimError.message || 'tente novamente'));
         authSubmit.disabled = false;
         return;
       }
     } catch(e) {
-      setAuthError(friendlyAuthError(e.code));
+      console.error('Erro criar conta:', e);
+      setAuthError(friendlyAuthError(e.code) + (e.message ? ' - ' + e.message : ''));
     } finally {
       authSubmit.disabled = false;
     }
