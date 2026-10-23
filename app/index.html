@@ -394,8 +394,8 @@
 
   /* V61 - FINAL + TOP TABS DESKTOP */
   .top-tabs-final {
-    display: flex; align-items: center; gap: 6px;
-    padding: 0 20px; height: 54px; background: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 0 20px; height: 56px; background: #fff;
     border-bottom: 1px solid #E5E7EB; position: sticky; top: 0; z-index: 100;
     overflow-x: auto; scrollbar-width: none;
   }
@@ -682,11 +682,10 @@
 
 <div id="appRoot" style="display:none;">
   <div class="top-tabs-final" id="topTabsFinal">
+    <button class="top-tab-final" data-view="profile" id="topFProfile">Perfil</button>
     <button class="top-tab-final active" data-view="overview" id="topFOverview">Visão geral</button>
     <button class="top-tab-final" data-view="month" id="topFMonth"><span id="topFMonthLabel">Meses</span></button>
-    <button class="top-tab-final" data-view="entradas" id="topFEntradas">Entradas</button>
-    <button class="top-tab-final" data-view="categorias" id="topFCategorias">Categorias</button>
-    <button class="top-tab-final" data-view="profile" id="topFProfile">Perfil</button>
+    <button class="top-tab-final" data-view="lancamentos" id="topFLancamentos">Lançamentos</button>
     <button class="top-tab-final" data-view="about" id="topFAbout">Sobre</button>
     <span style="margin-left:auto; font-size:11px; color:#64748B;" id="topFEmail"></span>
     <button class="top-tab-final" id="topFLogout" style="background:#fff;">Sair</button>
