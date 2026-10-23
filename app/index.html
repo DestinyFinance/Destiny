@@ -392,38 +392,32 @@
   }
 
 
-  /* V59 TOP TABS - DESKTOP FIRST */
-  .top-tabs {
+  /* V61 - FINAL + TOP TABS DESKTOP */
+  .top-tabs-final {
     display: flex; align-items: center; gap: 6px;
-    padding: 0 20px; height: 54px;
-    background: #ffffff; border-bottom: 1px solid #E5E7EB;
-    position: sticky; top: 0; z-index: 50;
+    padding: 0 20px; height: 54px; background: #fff;
+    border-bottom: 1px solid #E5E7EB; position: sticky; top: 0; z-index: 100;
     overflow-x: auto; scrollbar-width: none;
   }
-  .top-tabs::-webkit-scrollbar { display:none; }
-  .top-tab {
+  .top-tabs-final::-webkit-scrollbar { display:none; }
+  .top-tab-final {
     height: 34px; padding: 0 14px; border-radius: 999px;
-    border: 1px solid transparent; background: transparent;
-    font-size: 13px; font-weight: 600; color: #6B7280;
-    display: flex; align-items: center; gap: 6px;
-    white-space: nowrap; cursor: pointer; flex-shrink:0;
+    border: 1px solid #E5E7EB; background: #F8FAFC;
+    font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer; white-space: nowrap;
   }
-  .top-tab:hover { background:#F3F4F6; color:#111827; }
-  .top-tab.active { background:#111827; color:#fff; }
-  .top-tab.active svg { stroke:#fff; }
-  #topUserEmail { font-size: 11px; color:#6B7280; margin-left:auto; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .main-layout { display:flex; min-height:calc(100vh - 54px); }
-  .main-col { flex:1; }
-  .danger-zone { margin-top:24px; padding:16px; border:1.5px dashed #FCA5A5; background:#FEF2F2; border-radius:12px; }
-  .btn-danger { background:#DC2626; color:#fff; border:none; border-radius:999px; height:38px; padding:0 18px; font-weight:600; cursor:pointer; }
-  @media (min-width: 981px){
+  .top-tab-final.active { background:#0F172A; color:#fff; border-color:#0F172A; }
+  .main-layout-final { display:flex; min-height:calc(100vh - 54px); }
+  .main-layout-final .sidebar { width: 280px; flex-shrink:0; }
+  .main-layout-final .main-col { flex:1; }
+  .danger-zone-final { margin-top:20px; padding:16px; border:1.5px dashed #FCA5A5; background:#FEF2F2; border-radius:12px; }
+  .btn-danger-final { background:#DC2626; color:#fff; border:none; border-radius:999px; height:40px; padding:0 18px; font-weight:700; cursor:pointer; }
+  @media (max-width: 980px){
+    .main-layout-final { flex-direction: column; }
+    .main-layout-final .sidebar { width:100% !important; height:auto !important; }
     .side-nav { display:none !important; }
   }
-  @media (max-width: 980px){
-    .main-layout { flex-direction: column; }
-    .sidebar { width:100% !important; height:auto !important; position:relative !important; }
-    .sidebar .side-nav { display:none !important; }
-    .top-tabs { position:sticky; top:0; background:rgba(255,255,255,0.98); backdrop-filter:blur(8px); }
+  @media (min-width: 981px){
+    .side-nav { display:none !important; }
   }
 
 </style>
@@ -687,17 +681,17 @@
 </div>
 
 <div id="appRoot" style="display:none;">
-  <div class="top-tabs" id="topTabs">
-    <button class="top-tab" data-view="overview" id="topNavOverview">Visão geral</button>
-    <button class="top-tab" data-view="month" id="topNavMonth"><span id="topNavMonthLabel">Meses</span></button>
-    <button class="top-tab" data-view="entradas" id="topNavEntradas">Entradas</button>
-    <button class="top-tab" data-view="categorias" id="topNavCategorias">Categorias</button>
-    <button class="top-tab" data-view="profile" id="topNavProfile">Perfil</button>
-    <button class="top-tab" data-view="about" id="topNavAbout">Sobre</button>
-    <span id="topUserEmail"></span>
-    <button class="top-tab" id="topLogoutBtn" style="background:#F3F4F6; border:1px solid #E5E7EB;">Sair</button>
+  <div class="top-tabs-final" id="topTabsFinal">
+    <button class="top-tab-final active" data-view="overview" id="topFOverview">Visão geral</button>
+    <button class="top-tab-final" data-view="month" id="topFMonth"><span id="topFMonthLabel">Meses</span></button>
+    <button class="top-tab-final" data-view="entradas" id="topFEntradas">Entradas</button>
+    <button class="top-tab-final" data-view="categorias" id="topFCategorias">Categorias</button>
+    <button class="top-tab-final" data-view="profile" id="topFProfile">Perfil</button>
+    <button class="top-tab-final" data-view="about" id="topFAbout">Sobre</button>
+    <span style="margin-left:auto; font-size:11px; color:#64748B;" id="topFEmail"></span>
+    <button class="top-tab-final" id="topFLogout" style="background:#fff;">Sair</button>
   </div>
-  <div class="main-layout">
+  <div class="main-layout-final">
 
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -983,12 +977,11 @@
       <div id="viewProfile" style="display:none;">
         <div class="panel" style="max-width:520px;">
           <h2>Meu perfil</h2>
-          
-          <div class="danger-zone">
-            <h3 style="margin:0 0 6px; color:#DC2626; font-size:13px;">Zona de perigo</h3>
-            <p style="margin:0 0 10px; font-size:12px; color:#7F1D1D;">Excluir sua conta apaga tudo permanentemente. Não pode ser desfeito.</p>
-            <button class="btn-danger" id="deleteAccountBtn">Excluir minha conta</button>
-            <p id="deleteAccountError" style="display:none; color:#DC2626; font-size:11px; margin-top:8px;"></p>
+                    <div class="danger-zone-final">
+            <h3 style="margin:0 0 6px; color:#DC2626; font-size:13px;">Excluir conta</h3>
+            <p style="margin:0 0 10px; font-size:12px; color:#7F1D1D;">Apaga permanentemente todos os dados e libera seu CPF. Irreversível.</p>
+            <button class="btn-danger-final" id="deleteAccountBtnFinal">Excluir minha conta</button>
+            <p id="deleteErrorFinal" style="display:none; color:#DC2626; font-size:11px; margin-top:8px;"></p>
           </div>
 
           <div id="profileLockNotice" class="invest-disclaimer" style="display:none; margin-bottom:14px;">
@@ -3220,40 +3213,5 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
-<script type="module">
-
-document.getElementById('topNavOverview')?.addEventListener('click', ()=>{ activeView='overview'; applyView(); });
-document.getElementById('topNavMonth')?.addEventListener('click', ()=>{ activeView='month'; applyView(); });
-document.getElementById('topNavEntradas')?.addEventListener('click', ()=>{ activeView='month'; applyView(); setTimeout(()=>document.getElementById('panelIncome')?.scrollIntoView({behavior:'smooth'}),80); });
-document.getElementById('topNavCategorias')?.addEventListener('click', ()=>{ activeView='month'; applyView(); setTimeout(()=>document.getElementById('panelCategories')?.scrollIntoView({behavior:'smooth'}),80); });
-document.getElementById('topNavProfile')?.addEventListener('click', ()=>{ activeView='profile'; renderProfileView(); applyView(); });
-document.getElementById('topNavAbout')?.addEventListener('click', ()=>{ activeView='about'; applyView(); });
-document.getElementById('topLogoutBtn')?.addEventListener('click', ()=> signOut(auth));
-
-document.getElementById('deleteAccountBtn')?.addEventListener('click', async ()=>{
-  const c = prompt('Digite EXCLUIR para confirmar exclusão permanente:');
-  if(c!=='EXCLUIR'){ alert('Cancelado'); return; }
-  const senha = prompt('Digite sua senha:');
-  if(!senha) return;
-  const errEl = document.getElementById('deleteAccountError');
-  errEl.style.display='none';
-  try{
-    const cred = EmailAuthProvider.credential(currentUser.email, senha);
-    await reauthenticateWithCredential(currentUser, cred);
-    const uid = currentUser.uid;
-    try{ await deleteDoc(doc(db,'users',uid)); }catch(e){}
-    try{ await deleteDoc(doc(db,'profiles',uid)); }catch(e){}
-    try{ await deleteDoc(doc(db,'trialStatus',uid)); }catch(e){}
-    if(profileData && profileData.cpf){ try{ await deleteDoc(doc(db,'cpfRegistry',profileData.cpf)); }catch(e){} }
-    await deleteUser(currentUser);
-    alert('Conta excluída');
-    location.reload();
-  }catch(e){
-    errEl.textContent = e.code==='auth/wrong-password' || e.code==='auth/invalid-credential' ? 'Senha incorreta' : e.message;
-    errEl.style.display='block';
-  }
-});
-
-</script>
 </body>
 </html>
