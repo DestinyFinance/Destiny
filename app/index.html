@@ -681,14 +681,13 @@
 </div>
 
 <div id="appRoot" style="display:none;">
-  <div class="top-tabs-final" id="topTabsFinal">
+    <div class="top-tabs-final" id="topTabsFinal" style="justify-content:center;">
     <button class="top-tab-final" data-view="profile" id="topFProfile">Perfil</button>
     <button class="top-tab-final active" data-view="overview" id="topFOverview">Visão geral</button>
     <button class="top-tab-final" data-view="month" id="topFMonth"><span id="topFMonthLabel">Meses</span></button>
-    <button class="top-tab-final" data-view="lancamentos" id="topFLancamentos">Lançamentos</button>
     <button class="top-tab-final" data-view="about" id="topFAbout">Sobre</button>
-    <span style="margin-left:auto; font-size:11px; color:#64748B;" id="topFEmail"></span>
-    <button class="top-tab-final" id="topFLogout" style="background:#fff;">Sair</button>
+    <span style="margin-left:12px; font-size:11px; color:#64748B;" id="topFEmail"></span>
+    <button class="top-tab-final" id="topFLogout" style="background:#fff; margin-left:8px;">Sair</button>
   </div>
   <div class="main-layout-final">
 
@@ -726,6 +725,9 @@
     <div class="sidebar-months">
       <p class="sidebar-label">Meses</p>
       <div class="months-list" id="monthsBar"></div>
+      <div style="padding:8px 0; display:flex; flex-direction:column; gap:6px;">
+        <button id="deleteMonthBtn" class="small" style="width:100%; border-style:dashed; color:#DC2626; border-color:#FCA5A5;">🗑️ Excluir mês atual</button>
+      </div>
       <div class="month-add" id="monthAddWrap"></div>
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
     <div id="ownerPanel" style="display:none !important;">
@@ -976,7 +978,12 @@
       <div id="viewProfile" style="display:none;">
         <div class="panel" style="max-width:520px;">
           <h2>Meu perfil</h2>
-                    <div class="danger-zone-final">
+                    <div style="margin-top:16px; padding:12px; border:1px dashed #E5E7EB; background:#F8FAFC; border-radius:12px;">
+            <h3 style="margin:0 0 6px; font-size:13px;">Gerenciar perfil</h3>
+            <p style="margin:0 0 10px; font-size:11px; color:#64748B;">Apagar apenas seus dados de perfil (nome, CPF, telefone), mantendo a conta.</p>
+            <button id="deleteProfileDataBtn" class="small" style="color:#DC2626; border-color:#FCA5A5;">Excluir dados do perfil</button>
+          </div>
+          <div class="danger-zone-final">
             <h3 style="margin:0 0 6px; color:#DC2626; font-size:13px;">Excluir conta</h3>
             <p style="margin:0 0 10px; font-size:12px; color:#7F1D1D;">Apaga permanentemente todos os dados e libera seu CPF. Irreversível.</p>
             <button class="btn-danger-final" id="deleteAccountBtnFinal">Excluir minha conta</button>
