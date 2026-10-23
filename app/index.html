@@ -57,7 +57,7 @@
   svg.icon, svg.icon-lg { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
   /* ---------- shell ---------- */
-  #appRoot { display: flex; min-height: 100vh; flex-direction: column; }
+  #appRoot { display: flex; min-height: 100vh; }
 
   /* ---------- sidebar ---------- */
   .sidebar { width: 244px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; }
@@ -392,32 +392,30 @@
   }
 
 
-  /* V61 - FINAL + TOP TABS DESKTOP */
-  .top-tabs-final {
+  /* V63 - TOP TABS CENTRALIZADO + FUNCIONANDO */
+  .top-tabs-v63 {
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 0 20px; height: 56px; background: #fff;
-    border-bottom: 1px solid #E5E7EB; position: sticky; top: 0; z-index: 100;
-    overflow-x: auto; scrollbar-width: none;
+    padding: 0 16px; height: 56px; background: #fff;
+    border-bottom: 1px solid #E2E8F0; position: sticky; top: 0; z-index: 100;
+    overflow-x: auto; white-space: nowrap;
   }
-  .top-tabs-final::-webkit-scrollbar { display:none; }
-  .top-tab-final {
-    height: 34px; padding: 0 14px; border-radius: 999px;
-    border: 1px solid #E5E7EB; background: #F8FAFC;
-    font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer; white-space: nowrap;
+  .top-tabs-v63::-webkit-scrollbar{ display:none; }
+  .top-tab-v63 {
+    height: 36px; padding: 0 18px; border-radius: 999px;
+    border: 1px solid #E2E8F0; background: #F8FAFC;
+    font-size: 13px; font-weight: 700; color: #64748B; cursor: pointer;
   }
-  .top-tab-final.active { background:#0F172A; color:#fff; border-color:#0F172A; }
-  .main-layout-final { display:flex; min-height:calc(100vh - 54px); flex:1; }
-  .main-layout-final .sidebar { width: 280px; flex-shrink:0; }
-  .main-layout-final .main-col { flex:1; }
-  .danger-zone-final { margin-top:20px; padding:16px; border:1.5px dashed #FCA5A5; background:#FEF2F2; border-radius:12px; }
-  .btn-danger-final { background:#DC2626; color:#fff; border:none; border-radius:999px; height:40px; padding:0 18px; font-weight:700; cursor:pointer; }
+  .top-tab-v63.active { background: #0F172A; color: #fff; border-color: #0F172A; }
+  .top-tab-v63:hover { background: #F1F5F9; }
+  #appRoot { display: flex; flex-direction: column; min-height: 100vh; }
+  .main-layout-v63 { display: flex; flex: 1; min-height: calc(100vh - 56px); }
+  .main-layout-v63 .sidebar { width: 280px; }
+  .main-layout-v63 .main-col { flex: 1; }
+  .danger-zone-v63 { margin-top:16px; padding:14px; border:1.5px dashed #FCA5A5; background:#FEF2F2; border-radius:12px; }
+  .btn-danger-v63 { background:#DC2626; color:#fff; border:none; border-radius:999px; height:40px; padding:0 18px; font-weight:700; cursor:pointer; }
   @media (max-width: 980px){
-    .main-layout-final { flex-direction: column; }
-    .main-layout-final .sidebar { width:100% !important; height:auto !important; }
-    .side-nav { display:none !important; }
-  }
-  @media (min-width: 981px){
-    .side-nav { display:none !important; }
+    .main-layout-v63 { flex-direction: column; }
+    .main-layout-v63 .sidebar { width:100% !important; height:auto !important; }
   }
 
 </style>
@@ -681,15 +679,14 @@
 </div>
 
 <div id="appRoot" style="display:none;">
-    <div class="top-tabs-final" id="topTabsFinal" style="justify-content:center;">
-    <button class="top-tab-final" data-view="profile" id="topFProfile">Perfil</button>
-    <button class="top-tab-final active" data-view="overview" id="topFOverview">Visão geral</button>
-    <button class="top-tab-final" data-view="month" id="topFMonth"><span id="topFMonthLabel">Meses</span></button>
-    <button class="top-tab-final" data-view="about" id="topFAbout">Sobre</button>
-    <span style="margin-left:12px; font-size:11px; color:#64748B;" id="topFEmail"></span>
-    <button class="top-tab-final" id="topFLogout" style="background:#fff; margin-left:8px;">Sair</button>
+  <div class="top-tabs-v63" id="topTabsV63">
+    <button class="top-tab-v63" data-view="profile" id="tabPerfil">Perfil</button>
+    <button class="top-tab-v63 active" data-view="overview" id="tabOverview">Visão geral</button>
+    <button class="top-tab-v63" data-view="month" id="tabMeses">Meses</button>
+    <button class="top-tab-v63" data-view="about" id="tabSobre">Sobre</button>
+    <button class="top-tab-v63" id="tabLogout" style="margin-left:12px; background:#fff;">Sair</button>
   </div>
-  <div class="main-layout-final">
+  <div class="main-layout-v63">
 
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -725,9 +722,7 @@
     <div class="sidebar-months">
       <p class="sidebar-label">Meses</p>
       <div class="months-list" id="monthsBar"></div>
-      <div style="padding:8px 0; display:flex; flex-direction:column; gap:6px;">
-        <button id="deleteMonthBtn" class="small" style="width:100%; border-style:dashed; color:#DC2626; border-color:#FCA5A5;">🗑️ Excluir mês atual</button>
-      </div>
+      <button id="deleteMonthBtnV63" class="small" style="margin-top:8px; width:100%; color:#DC2626; border-color:#FCA5A5; border-style:dashed;">🗑️ Excluir mês atual</button>
       <div class="month-add" id="monthAddWrap"></div>
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
     <div id="ownerPanel" style="display:none !important;">
@@ -978,19 +973,12 @@
       <div id="viewProfile" style="display:none;">
         <div class="panel" style="max-width:520px;">
           <h2>Meu perfil</h2>
-                    <div style="margin-top:16px; padding:12px; border:1px dashed #E5E7EB; background:#F8FAFC; border-radius:12px;">
-            <h3 style="margin:0 0 6px; font-size:13px;">Gerenciar perfil</h3>
-            <p style="margin:0 0 10px; font-size:11px; color:#64748B;">Apagar apenas seus dados de perfil (nome, CPF, telefone), mantendo a conta.</p>
-            <button id="deleteProfileDataBtn" class="small" style="color:#DC2626; border-color:#FCA5A5;">Excluir dados do perfil</button>
+                    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="deleteProfileDataBtnV63" class="small" style="color:#DC2626; border-color:#FCA5A5;">Excluir dados do perfil</button>
+            <button id="deleteAccountBtnV63" class="btn-danger-v63">Excluir conta (tudo)</button>
+            <span id="deleteErrorV63" style="display:none; color:#DC2626; font-size:11px; margin-left:8px;"></span>
           </div>
-          <div class="danger-zone-final">
-            <h3 style="margin:0 0 6px; color:#DC2626; font-size:13px;">Excluir conta</h3>
-            <p style="margin:0 0 10px; font-size:12px; color:#7F1D1D;">Apaga permanentemente todos os dados e libera seu CPF. Irreversível.</p>
-            <button class="btn-danger-final" id="deleteAccountBtnFinal">Excluir minha conta</button>
-            <p id="deleteErrorFinal" style="display:none; color:#DC2626; font-size:11px; margin-top:8px;"></p>
-          </div>
-
-          <div id="profileLockNotice" class="invest-disclaimer" style="display:none; margin-bottom:14px;">
+          <div id="profileLockNotice"  class="invest-disclaimer" style="display:none; margin-bottom:14px;">
             <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
             <span>Complete seus dados abaixo para continuar usando o Destiny. Isso é necessário só uma vez.</span>
           </div>
@@ -1049,7 +1037,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   onAuthStateChanged, signOut, sendPasswordResetEmail,
-  setPersistence, browserLocalPersistence, deleteUser, EmailAuthProvider, reauthenticateWithCredential
+  setPersistence, browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -2137,14 +2125,12 @@ function applyView(){
   document.getElementById('viewOverview').style.display = activeView === 'overview' ? 'block' : 'none';
   document.getElementById('viewMonth').style.display = activeView === 'month' ? 'block' : 'none';
   document.getElementById('viewProfile').style.display = activeView === 'profile' ? 'block' : 'none';
-  try{
-    document.querySelectorAll('.top-tab-final[data-view]').forEach(t=>t.classList.remove('active'));
-    const top = document.querySelector(`.top-tab-final[data-view="${activeView}"]`);
-    if(top) top.classList.add('active');
-    const topEmail = document.getElementById('topFEmail'); if(topEmail && currentUser) topEmail.textContent = currentUser.email;
-  }catch(e){}
-
   const ab = document.getElementById('viewAbout'); if(ab) ab.style.display = activeView === 'about' ? 'block' : 'none';
+  try{
+    document.querySelectorAll('.top-tab-v63[data-view]').forEach(t=>t.classList.remove('active'));
+    const topActive = document.querySelector(`.top-tab-v63[data-view="${activeView}"]`);
+    if(topActive) topActive.classList.add('active');
+  }catch(e){}
   document.getElementById('navOverview').classList.toggle('active', activeView === 'overview');
   document.getElementById('navMonth').classList.toggle('active', activeView === 'month');
   document.getElementById('navProfile').classList.toggle('active', activeView === 'profile');
