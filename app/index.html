@@ -734,7 +734,10 @@
           </button>
           <input type="text" id="nameInput" class="name-input" placeholder="Como você quer ser chamado?" maxlength="40" style="display:none;" />
         </div>
-        <p id="subtitle">Sua renda, dividida com intenção.</p>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <p id="subtitle" style="margin:0;">Sua renda, dividida com intenção.</p>
+        <button id="deleteMonthBtnInline" style="display:none; height:28px; padding:0 12px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir este mês</button>
+      </div>
       </div>
     </header>
 
@@ -2911,6 +2914,59 @@ document.getElementById('deleteAccountBtnFinal')?.addEventListener('click', asyn
     if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
     else alert(msg);
   }
+});
+
+
+// Mostra botão excluir ao lado de "Editando ..."
+function updateDeleteBtnVisibility(){
+  const btn = document.getElementById('deleteMonthBtnInline');
+  const sub = document.getElementById('subtitle');
+  if(!btn || !sub) return;
+  if(activeView==='month' && currentMonth){
+    btn.style.display='inline-flex';
+  } else {
+    btn.style.display='none';
+  }
+}
+const _origApplyView = window.applyView || applyView;
+const _origApplyViewFn = applyView;
+window.applyView = function(){ _origApplyViewFn(); updateDeleteBtnVisibility(); };
+function applyViewPatched(){
+  document.getElementById('viewOverview').style.display = activeView === 'overview' ? 'block' : 'none';
+  document.getElementById('viewMonth').style.display = activeView === 'month' ? 'block' : 'none';
+  document.getElementById('viewProfile').style.display = activeView === 'profile' ? 'block' : 'none';
+  const ab = document.getElementById('viewAbout'); if(ab) ab.style.display = activeView === 'about' ? 'block' : 'none';
+  document.getElementById('navOverview').classList.toggle('active', activeView === 'overview');
+  document.getElementById('navMonth').classList.toggle('active', activeView === 'month');
+  document.getElementById('navProfile').classList.toggle('active', activeView === 'profile');
+  const nAb = document.getElementById('navAbout'); if(nAb) nAb.classList.toggle('active', activeView === 'about');
+  updateDeleteBtnVisibility();
+}
+try{ applyView = applyViewPatched; }catch(e){}
+
+// Listener para botão inline
+document.getElementById('deleteMonthBtnInline')?.addEventListener('click', async function(){
+  if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
+  if(!confirm('Excluir o mês ' + currentMonth + '? Todos os lançamentos desse mês serão apagados PERMANENTEMENTE.')) return;
+  if(!confirm('Tem certeza absoluta? Não tem como desfazer.')) return;
+  try{
+    delete data.months[currentMonth];
+    const remaining = Object.keys(data.months).sort();
+    if(remaining.length===0){
+      const now = new Date();
+      const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+      data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
+      currentMonth = ym;
+    } else {
+      currentMonth = remaining[remaining.length-1];
+    }
+    await persistNow();
+    renderAll();
+    alert('Mês excluído!');
+  }catch(e){ alert('Erro: '+e.message); }
+});
+document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', async function(){
+  document.getElementById('deleteMonthBtnInline')?.click();
 });
 
 </script>
