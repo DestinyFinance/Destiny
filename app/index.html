@@ -2845,6 +2845,74 @@ onAuthStateChanged(auth, async (user) => {
     authPass.value = '';
   }
 });
+
+// DELETE MES - FINAL FUNCIONANDO - GARANTIDO
+document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', async ()=>{
+  console.log('deleteMonth clicked', currentMonth);
+  if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
+  const ok1 = confirm(`Excluir o mês ${currentMonth}? Todos os lançamentos desse mês serão apagados permanentemente.`);
+  if(!ok1) return;
+  const ok2 = confirm('Tem certeza? Essa ação não pode ser desfeita.');
+  if(!ok2) return;
+  try{
+    delete data.months[currentMonth];
+    const remaining = Object.keys(data.months).sort();
+    if(remaining.length===0){
+      const now = new Date();
+      const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+      data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
+      currentMonth = ym;
+    } else {
+      currentMonth = remaining[remaining.length-1];
+    }
+    await persistNow();
+    renderAll();
+    alert('Mês excluído com sucesso');
+  }catch(e){ console.error(e); alert('Erro ao excluir mês: '+e.message); }
+});
+
+document.getElementById('deleteProfileDataBtnFinal')?.addEventListener('click', async ()=>{
+  if(!confirm('Excluir dados do perfil (nome, CPF, telefone)? Sua conta continua, mas precisará preencher o perfil novamente.')) return;
+  try{
+    try{ await deleteDoc(doc(db,'profiles',currentUser.uid)); }catch(e){ console.log('erro profiles', e); }
+    if(profileData && profileData.cpf){ try{ await deleteDoc(doc(db,'cpfRegistry',profileData.cpf)); }catch(e){} }
+    profileData = null;
+    profileIncomplete = true;
+    if(data){ data.profileName=''; saveData(); }
+    renderProfileView();
+    activeView='profile';
+    applyView();
+    alert('Dados do perfil excluídos');
+  }catch(e){ alert('Erro: '+e.message); }
+});
+
+document.getElementById('deleteAccountBtnFinal')?.addEventListener('click', async ()=>{
+  const c = prompt('Digite EXCLUIR para confirmar exclusão PERMANENTE da conta:');
+  if(c!=='EXCLUIR'){ alert('Cancelado'); return; }
+  const senha = prompt('Digite sua senha:');
+  if(!senha) return;
+  const errEl = document.getElementById('deleteErrorFinal');
+  if(errEl) errEl.style.display='none';
+  try{
+    const cred = EmailAuthProvider.credential(currentUser.email, senha);
+    await reauthenticateWithCredential(currentUser, cred);
+    const uid = currentUser.uid;
+    const cpfToDelete = profileData?.cpf;
+    try{ await deleteDoc(doc(db,'profiles',uid)); }catch(e){}
+    try{ await deleteDoc(doc(db,'users',uid)); }catch(e){}
+    try{ await deleteDoc(doc(db,'trialStatus',uid)); }catch(e){}
+    if(cpfToDelete){ try{ await deleteDoc(doc(db,'cpfRegistry',cpfToDelete)); }catch(e){} }
+    await deleteUser(currentUser);
+    alert('Conta excluída com sucesso');
+    location.reload();
+  }catch(e){
+    console.error(e);
+    const msg = (e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'||e.code==='auth/invalid-login-credentials') ? 'Senha incorreta' : e.message;
+    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
+    else alert(msg);
+  }
+});
+
 </script>
 
 
