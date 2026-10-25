@@ -750,7 +750,7 @@
         <div style="display:flex; flex-direction:column; gap:2px;">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <p id="subtitle" style="margin:0;">Sua renda, dividida com intenção.</p>
-          <button id="deleteMonthBtnInline" type="button" style="display:none; height:30px; padding:0 14px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:5px; line-height:1; vertical-align:middle;">🗑️ Excluir este mês</button>
+          <button id="deleteMonthBtnInline" type="button" style="display:inline-flex; height:30px; padding:0 14px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:5px; line-height:1;" style="display:none; height:30px; padding:0 14px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:5px; line-height:1; vertical-align:middle;">🗑️ Excluir este mês</button>
         </div>
         <span id="lastBackupInfo" style="font-size:10px; color:#64748B; display:none;"></span>
       </div>
@@ -3124,19 +3124,75 @@ document.getElementById('btnListBackups')?.addEventListener('click', listarBacku
 setTimeout(atualizarInfoUltimoBackup, 2000);
 
 
-// ===== V77 - BASE V69 + FIX DELETE SEM LOOP + BOTÃO CENTRALIZADO =====
+
+// ===== FIX BACKUP BUTTON + DELETE BUTTON - V78 =====
 (function(){
+  // Fix backup button
+  async function fazerBackupAgora(){
+    const btn = document.getElementById('btnBackupNow') || document.getElementById('backupNowBtn');
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvando...';
+    }
+    try{
+      const backupData = {
+        uid: auth.currentUser ? auth.currentUser.uid : 'unknown',
+        createdAt: new Date().toISOString(),
+        data: data,
+        months: Object.keys(data.months || {}).length
+      };
+      // Tenta salvar no Firestore
+      try{
+        const backupId = (auth.currentUser ? auth.currentUser.uid : 'anon') + '_' + new Date().toISOString().replace(/[:.]/g,'-');
+        if(typeof db !== 'undefined' && auth.currentUser){
+          await db.collection('backups').doc(backupId).set(backupData);
+          alert('✅ Backup salvo na nuvem!');
+        } else {
+          throw new Error('Sem auth');
+        }
+      }catch(e){
+        console.log('Backup fallback local:', e.message);
+        localStorage.setItem('destiny_last_backup', JSON.stringify(backupData));
+        // Baixa JSON também
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'backup-destiny-' + new Date().toISOString().slice(0,10) + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('✅ Backup salvo localmente e baixado (sem permissão no servidor).');
+      }
+      if(typeof atualizarInfoUltimoBackup === 'function') atualizarInfoUltimoBackup();
+    }catch(err){
+      alert('Erro backup: ' + err.message);
+    }finally{
+      const b = document.getElementById('btnBackupNow') || document.getElementById('backupNowBtn');
+      if(b){ b.disabled = false; b.textContent = 'Fazer backup agora'; }
+    }
+  }
+  
+  function ligarBackup(){
+    const btn = document.getElementById('btnBackupNow') || document.getElementById('backupNowBtn');
+    if(!btn) return;
+    const clone = btn.cloneNode(true);
+    btn.parentNode.replaceChild(clone, btn);
+    clone.addEventListener('click', fazerBackupAgora);
+    console.log('Backup button religado');
+  }
+  
+  // Fix delete button
   let isDeleting = false;
   async function excluirMesUnico(){
-    if(isDeleting){ console.log('Já excluindo, ignorando'); return; }
+    if(isDeleting) return;
     isDeleting = true;
     const btn = document.getElementById('deleteMonthBtnInline');
     if(btn) btn.disabled = true;
     try{
-      if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
+      if(!currentMonth){ alert('Nenhum mês'); return; }
       const mes = currentMonth;
-      if(!confirm('Excluir o mês ' + mes + '? Todos os lançamentos desse mês serão apagados PERMANENTEMENTE.')) return;
-      if(!confirm('Tem certeza absoluta? Não tem como desfazer.\nMês: ' + mes)) return;
+      if(!confirm('Excluir o mês ' + mes + '? Todos os lançamentos serão apagados PERMANENTEMENTE.')) return;
+      if(!confirm('Tem certeza absoluta? Mês: ' + mes)) return;
       delete data.months[mes];
       const remaining = Object.keys(data.months).sort();
       if(remaining.length===0){
@@ -3151,28 +3207,39 @@ setTimeout(atualizarInfoUltimoBackup, 2000);
       renderAll();
       alert('Mês ' + mes + ' excluído!');
     }catch(e){ alert('Erro: '+e.message); }
-    finally{
-      isDeleting = false;
-      const b = document.getElementById('deleteMonthBtnInline');
-      if(b) b.disabled = false;
-    }
+    finally{ isDeleting=false; const b=document.getElementById('deleteMonthBtnInline'); if(b) b.disabled=false; }
   }
-  function setupDelete(){
-    const inline = document.getElementById('deleteMonthBtnInline');
-    if(inline){
-      const clone = inline.cloneNode(true);
-      inline.parentNode.replaceChild(clone, inline);
-      clone.addEventListener('click', excluirMesUnico);
-    }
-  }
-  // Override applyView to show/hide central button
-  const _origApplyV77 = window.applyView;
-  window.applyView = function(){
-    _origApplyV77();
+  
+  function ligarDelete(){
     const btn = document.getElementById('deleteMonthBtnInline');
-    if(btn) btn.style.display = (activeView==='month' && currentMonth) ? 'inline-flex' : 'none';
+    if(!btn){
+      console.log('Botão delete inline não encontrado');
+      return;
+    }
+    const clone = btn.cloneNode(true);
+    btn.parentNode.replaceChild(clone, btn);
+    clone.addEventListener('click', excluirMesUnico);
+    clone.style.display = (typeof activeView !== 'undefined' && activeView==='month' && currentMonth) ? 'inline-flex' : 'inline-flex';
+    console.log('Delete button religado, visível');
+  }
+  
+  // Override applyView para mostrar botão sempre que estiver em mês
+  const _origApply = window.applyView;
+  window.applyView = function(){
+    _origApply();
+    const btn = document.getElementById('deleteMonthBtnInline');
+    if(btn){
+      // Mostra sempre que tem mês selecionado, não importa view
+      if(currentMonth){
+        btn.style.display = 'inline-flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
   };
-  setTimeout(setupDelete, 1000);
+  
+  setTimeout(()=>{ ligarBackup(); ligarDelete(); }, 1000);
+  document.addEventListener('DOMContentLoaded', ()=>{ ligarBackup(); ligarDelete(); });
 })();
 
 </script>
