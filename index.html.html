@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Destiny - O futuro do seu dinheiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF3F0;--ink:#16231F;--muted:#5C6B66;--primary:#1F4B3D;--primary2:#163529;--lime:#C5F277;--line:#DCE4DF;--card:#ffffff;--radius:20px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Manrope',sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.top{position:sticky;top:0;background:rgba(238,243,240,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:10}
+.top-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Manrope';font-weight:800;font-size:18px}
+.brand .dot{width:28px;height:28px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.btn{height:40px;padding:0 18px;border-radius:999px;border:none;font-family:'Inter';font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary2)}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.hero{padding:64px 0 32px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:32px;align-items:center}
+.hero h1{font-size:48px;line-height:0.95;letter-spacing:-0.04em;margin:0}
+.hero h1 span{color:var(--primary)}
+.hero p{font-size:16px;line-height:1.6;color:var(--muted);margin:14px 0 0;max-width:520px}
+.hero-cta{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.hero-card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(23,35,31,0.04), 0 8px 24px -12px rgba(23,35,31,0.12);border:1px solid var(--line)}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat{background:#F5F8F6;border-radius:14px;padding:14px}
+.stat .label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600}
+.stat .value{font-family:'Manrope';font-weight:800;font-size:20px;margin-top:2px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature{background:var(--card);border-radius:var(--radius);padding:20px;border:1px solid var(--line)}
+.feature h3{margin:0 0 6px;font-size:15px}
+.feature p{margin:0;font-size:13px;line-height:1.6;color:var(--muted)}
+.dark{ background:#111; color:#fff; border-radius:20px; padding:20px}
+.lime{ background:var(--lime); color:#000; border-radius:20px; padding:20px}
+.section{padding:40px 0}
+.section h2{font-size:28px;margin:0 0 12px;letter-spacing:-0.03em}
+.badge{display:inline-flex;height:24px;padding:0 10px;border-radius:999px;background:#E3ECE7;color:var(--primary);font-size:11px;font-weight:700;align-items:center}
+.footer{border-top:1px solid var(--line);padding:20px 0;margin-top:40px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.hero h1{font-size:38px}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap top-inner">
+    <div class="brand"><div class="dot">D</div> Destiny <span style="font-weight:400; opacity:0.6; font-size:13px; margin-left:6px;">O futuro do seu dinheiro</span></div>
+    <div style="display:flex; gap:8px;">
+      <a class="btn btn-ghost" href="/Destiny/app/?v=82">Entrar</a>
+      <a class="btn btn-primary" href="/Destiny/app/?v=82">Começar agora →</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="badge">✨ Novo - Backup automático</div>
+      <h1>Sua renda,<br>dividida com <span>intenção.</span></h1>
+      <p>Destiny não é planilha complicada. É clareza: você cria categorias, define % da renda, marca gastos fixos e vê todo mês onde seu dinheiro realmente vai.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="/Destiny/app/?v=82" style="height:46px; padding:0 24px; font-size:14px;">Criar minha conta grátis →</a>
+        <a class="btn btn-ghost" href="#como-funciona" style="height:46px;">Como funciona</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="label">Usuários</div><div class="value">+1.200</div></div>
+        <div class="stat"><div class="label">Meses organizados</div><div class="value">+8.400</div></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <strong style="font-family:'Manrope'">Resumo do mês</strong>
+        <span style="font-size:11px; background:#E3ECE7; color:#1F4B3D; padding:4px 10px; border-radius:999px; font-weight:700;">Out/26</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="background:#F5F8F6; border-radius:12px; padding:12px;"><div style="font-size:11px; color:#5C6B66;">Renda</div><div style="font-family:'Manrope'; font-weight:700;">R$ 4.722,00</div></div>
+        <div style="background:#FEF2F2; border-radius:12px; padding:12px;"><div style="font-size:11px; color:#DC2626;">Gasto</div><div style="font-family:'Manrope'; font-weight:700;">R$ 4.801,80</div></div>
+      </div>
+      <div style="margin-top:12px; background:#111; color:#fff; border-radius:12px; padding:14px; display:flex; gap:10px; align-items:center;">
+        <div style="width:40px; height:40px; border-radius:10px; background:#C5F277; color:#000; display:flex; align-items:center; justify-content:center; font-weight:800;">%</div>
+        <div><div style="font-size:13px; font-weight:600;">Essencial: 101% do limite</div><div style="font-size:11px; opacity:0.6;">ultrapassado em R$ 20,20</div></div>
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:#8B968F; text-align:center;">Gráfico de distribuição por categoria →</div>
+    </div>
+  </div>
+
+  <div class="section" id="como-funciona">
+    <h2>Como funciona na prática</h2>
+    <div class="grid3">
+      <div class="feature"><h3>1. Meses independentes</h3><p>Cada mês é um capítulo. Se um foi ruim, não carrega a bagunça pro próximo. Você edita outubro sem afetar setembro.</p></div>
+      <div class="feature"><h3>2. Gastos fixos automáticos</h3><p>Marca aluguel, gás, escola como fixo e ele repete sozinho quando um novo mês é criado. Nada de redigitar.</p></div>
+      <div class="feature"><h3>3. Limite por % ou R$</h3><p>Você decide se a categoria tem teto em reais ou em percentual da renda. Limite estoura, fica vermelho na hora.</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="dark"><div style="font-size:24px;">🔐</div><h3 style="margin:8px 0 6px;">Organização mensal</h3><p style="margin:0; font-size:13px; opacity:0.7; line-height:1.6;">Previsibilidade real. Você sabe o que vai vencer antes mesmo do mês começar. Isso evita esquecimentos e te dá controle.</p></div>
+      <div class="lime"><div style="font-size:24px;">📊</div><h3 style="margin:8px 0 6px;">Visão Geral que importa</h3><p style="margin:0; font-size:13px; opacity:0.8; line-height:1.6;">Não é só gráfico bonito. É onde você vê acumulado por categoria em todos os meses, encontra vazamentos invisíveis e descobre onde seu saldo some.</p></div>
+    </div>
+  </div>
+
+  <div class="section" style="text-align:center; background:#fff; border:1.5px dashed #d1d5db; border-radius:20px; padding:32px;">
+    <h2 style="margin-bottom:8px;">🚀 Em resumo</h2>
+    <p style="max-width:600px; margin:0 auto; color:var(--muted); line-height:1.7;">Destiny não é sobre ser rico. É sobre ter <strong style="color:var(--ink)">controle</strong>. Quando você sabe exatamente quanto entra, quanto sai, quanto investe e quanto sobra — mês a mês — você deixa de ser refém do dinheiro e passa a decidir o destino dele.</p>
+    <div style="margin-top:18px;"><a class="btn btn-primary" href="/Destiny/app/?v=82" style="height:46px; padding:0 28px;">Começar agora - é grátis →</a></div>
+  </div>
+</div>
+
+<div class="wrap footer">
+  <span>© 2026 Destiny - O futuro do seu dinheiro</span>
+  <span>Feito para quem quer transformar organização em resultado.</span>
+</div>
+</body>
+</html>
