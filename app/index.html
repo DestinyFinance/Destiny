@@ -391,6 +391,12 @@
     #landingRoot { width: 100% !important; max-width: 100% !important; }
   }
 
+
+  .backup-panel { margin-top:14px; padding:14px; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:12px; }
+  .backup-list { max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .backup-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:#fff; border:1px solid #E2E8F0; border-radius:8px; font-size:12px; }
+  .backup-item button { height:28px; font-size:11px; }
+
 </style>
 
 <style>
@@ -688,6 +694,21 @@
       <div class="months-list" id="monthsBar"></div>
       <button id="deleteMonthBtnFinal" class="small" style="margin-top:10px; width:100%; color:#DC2626; border-color:#FCA5A5; border-style:dashed; display:flex; align-items:center; justify-content:center; gap:6px;">🗑️ Excluir mês atual</button>
       <div class="month-add" id="monthAddWrap"></div>
+
+      <div class="backup-panel">
+        <p style="font-size:12px; font-weight:700; margin:0 0 8px; display:flex; align-items:center; gap:6px;">💾 Backup e Restauração</p>
+        <p id="lastBackupInfoSide" style="font-size:10px; color:#059669; margin:0 0 8px; font-weight:600;"></p>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button id="btnBackupNow" class="small" style="width:100%; background:#0F172A; color:#fff; border:none; font-weight:700;">Fazer backup agora</button>
+          <button id="btnDownloadBackup" class="small" style="width:100%;">Baixar backup (JSON)</button>
+          <label for="inputRestoreBackup" class="small" style="width:100%; border:1.5px dashed #94A3B8; border-radius:8px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:600;">Restaurar de arquivo</label>
+          <input type="file" id="inputRestoreBackup" accept=".json" style="display:none;" />
+          <button id="btnListBackups" class="small" style="width:100%; color:#64748B;">Ver backups automáticos</button>
+        </div>
+        <div id="backupList" class="backup-list" style="display:none;"></div>
+        <p id="backupStatus" style="font-size:10px; color:#059669; margin-top:8px; display:none;"></p>
+      </div>
+
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
     <div id="ownerPanel" style="display:none !important;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -735,7 +756,10 @@
           <input type="text" id="nameInput" class="name-input" placeholder="Como você quer ser chamado?" maxlength="40" style="display:none;" />
         </div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column;">
         <p id="subtitle" style="margin:0;">Sua renda, dividida com intenção.</p>
+        <span id="lastBackupInfo" style="font-size:10px; color:#64748B; margin-top:2px; display:none;">💾 Último backup: verificando...</span>
+      </div>
         <button id="deleteMonthBtnInline" style="display:none; height:28px; padding:0 12px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Excluir este mês</button>
       </div>
       </div>
@@ -2968,6 +2992,213 @@ document.getElementById('deleteMonthBtnInline')?.addEventListener('click', async
 document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', async function(){
   document.getElementById('deleteMonthBtnInline')?.click();
 });
+
+
+// ===== BACKUP E RESTAURAÇÃO - V67 =====
+async function fazerBackup(manual=true){
+  const status = document.getElementById('backupStatus');
+  try{
+    if(!currentUser || !data){ if(status){ status.textContent='Sem dados'; status.style.display='block'; } return; }
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleString('pt-BR');
+    const backupId = currentUser.uid + '_' + dateStr + '_' + Date.now();
+    const backupData = {
+      uid: currentUser.uid,
+      email: currentUser.email,
+      date: dateStr,
+      time: timeStr,
+      timestamp: Date.now(),
+      state: JSON.stringify(data),
+      version: 'v67',
+      manual: manual
+    };
+    // Salva no Firestore
+    await setDoc(doc(db, 'backups', backupId), backupData);
+    if(status){
+      status.textContent = manual ? '✅ Backup salvo em ' + timeStr : 'Backup automático salvo';
+      status.style.display='block';
+      setTimeout(()=>status.style.display='none', 4000);
+    }
+    console.log('Backup salvo', backupId);
+    if(manual) alert('Backup feito com sucesso!\n' + timeStr);
+    return backupId;
+  }catch(e){
+    console.error('Erro backup', e);
+    if(status){ status.textContent='Erro: '+e.message; status.style.display='block'; status.style.color='#DC2626'; }
+    alert('Erro ao fazer backup: '+e.message);
+  }
+}
+
+function baixarBackupJSON(){
+  if(!data){ alert('Sem dados para baixar'); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'destiny-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function restaurarDeArquivo(file){
+  if(!file) return;
+  if(!confirm('Restaurar backup?\nIsso vai SUBSTITUIR todos os dados atuais.\nRecomendado fazer backup antes.')) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    // Valida estrutura
+    if(!parsed.months){ throw new Error('Arquivo inválido - sem months'); }
+    // Confirma novamente
+    if(!confirm('Confirma restauração? Seus dados atuais serão perdidos.')) return;
+    data = parsed.months ? migrate(parsed) : parsed;
+    // Ajusta currentMonth
+    const months = Object.keys(data.months).sort();
+    if(months.length) currentMonth = months[months.length-1];
+    await persistNow();
+    // Faz backup do estado anterior antes de restaurar? já tem manual
+    renderAll();
+    alert('✅ Backup restaurado com sucesso!');
+    location.reload();
+  }catch(e){
+    console.error(e);
+    alert('Erro ao restaurar: '+e.message);
+  }
+}
+
+async function listarBackups(){
+  const listEl = document.getElementById('backupList');
+  const btn = document.getElementById('btnListBackups');
+  if(!listEl) return;
+  if(listEl.style.display==='none' || !listEl.style.display){
+    listEl.style.display='flex';
+    listEl.innerHTML='<p style="font-size:11px; color:#64748B;">Carregando...</p>';
+    if(btn) btn.textContent='Fechar lista';
+    try{
+      const { collection, query, where, getDocs, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      // Usa SDK modular já importado via window? Vamos usar getDocs direto
+      const q = query(collection(db, 'backups'), where('uid','==', currentUser.uid));
+      const snap = await getDocs(q);
+      const items = [];
+      snap.forEach(docSnap => items.push({id: docSnap.id, ...docSnap.data()}));
+      items.sort((a,b)=> (b.timestamp||0)-(a.timestamp||0));
+      if(items.length===0){
+        listEl.innerHTML='<p style="font-size:11px; color:#64748B;">Nenhum backup automático ainda. Clique em Fazer backup agora.</p>';
+        return;
+      }
+      listEl.innerHTML = items.slice(0,20).map(item => `
+        <div class="backup-item">
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-weight:600;">${item.date || ''} ${item.time ? '- ' + item.time.split(',')[1] || item.time : ''}</span>
+            <span style="font-size:10px; color:#64748B;">${item.manual ? 'Manual' : 'Automático'} • ${item.version||''}</span>
+          </div>
+          <button class="small" onclick="restaurarBackupPorId('${item.id}')" style="background:#0F172A; color:#fff; border:none;">Restaurar</button>
+        </div>
+      `).join('');
+    }catch(e){
+      console.error('Erro listar backups', e);
+      listEl.innerHTML='<p style="font-size:11px; color:#DC2626;">Erro: '+e.message+'</p>';
+    }
+  } else {
+    listEl.style.display='none';
+    if(btn) btn.textContent='Ver backups automáticos';
+  }
+}
+
+window.restaurarBackupPorId = async function(backupId){
+  if(!confirm('Restaurar este backup? Seus dados atuais serão substituídos.')) return;
+  if(!confirm('Tem certeza absoluta?')) return;
+  try{
+    const snap = await getDoc(doc(db, 'backups', backupId));
+    if(!snap.exists()){ alert('Backup não encontrado'); return; }
+    const b = snap.data();
+    const state = JSON.parse(b.state);
+    data = state.months ? state : migrate(state);
+    const months = Object.keys(data.months).sort();
+    if(months.length) currentMonth = months[months.length-1];
+    await persistNow();
+    renderAll();
+    alert('✅ Backup restaurado!');
+    location.reload();
+  }catch(e){
+    alert('Erro: '+e.message);
+  }
+};
+
+// Listeners backup
+document.getElementById('btnBackupNow')?.addEventListener('click', ()=> fazerBackup(true));
+document.getElementById('btnDownloadBackup')?.addEventListener('click', baixarBackupJSON);
+document.getElementById('inputRestoreBackup')?.addEventListener('change', (e)=> {
+  const f = e.target.files[0];
+  if(f) restaurarDeArquivo(f);
+  e.target.value='';
+});
+document.getElementById('btnListBackups')?.addEventListener('click', listarBackups);
+
+// Backup automático diário - a cada 24h e ao carregar
+async function backupAutomaticoDiario(){
+  try{
+    if(!currentUser || !data) return;
+    const today = new Date().toISOString().split('T')[0];
+    // Verifica se já fez hoje (usa localStorage)
+    const key = 'destiny_backup_' + currentUser.uid + '_' + today;
+    if(localStorage.getItem(key)) return;
+    await fazerBackup(false);
+    localStorage.setItem(key, '1');
+  }catch(e){ console.log('Erro backup auto', e); }
+}
+setTimeout(backupAutomaticoDiario, 5000);
+setInterval(backupAutomaticoDiario, 60*60*1000);
+
+
+async function atualizarInfoUltimoBackup(){
+  const elTop = document.getElementById('lastBackupInfo');
+  const elSide = document.getElementById('lastBackupInfoSide');
+  try{
+    if(!currentUser){ if(elTop) elTop.style.display='none'; return; }
+    const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    // Tenta pegar do Firestore
+    const q = query(collection(db, 'backups'), where('uid','==', currentUser.uid));
+    const snap = await getDocs(q);
+    let last = null;
+    snap.forEach(d=>{
+      const data = d.data();
+      if(!last || (data.timestamp||0) > (last.timestamp||0)) last = data;
+    });
+    if(last){
+      const dt = new Date(last.timestamp);
+      const hoje = new Date().toISOString().split('T')[0] === last.date;
+      const hora = dt.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+      const texto = hoje ? `💾 Último backup: hoje às ${hora}` : `💾 Último backup: ${last.date} às ${hora}`;
+      if(elTop){ elTop.textContent = texto; elTop.style.display='block'; }
+      if(elSide){ elSide.textContent = texto; }
+      // Se for de hoje, verde, se for antigo, laranja
+      if(!hoje && elTop){
+        elTop.style.color='#D97706';
+        elTop.textContent += ' ⚠️';
+      }
+    } else {
+      if(elTop){ elTop.textContent='💾 Nenhum backup ainda - clique em Fazer backup agora'; elTop.style.display='block'; elTop.style.color='#DC2626'; }
+      if(elSide){ elSide.textContent='Nenhum backup ainda'; elSide.style.color='#DC2626'; }
+    }
+  }catch(e){
+    console.log('Erro info backup', e);
+    // Fallback localStorage
+    const keyPattern = 'destiny_backup_' + (currentUser?.uid||'');
+    const lastLocal = localStorage.getItem(keyPattern + '_' + new Date().toISOString().split('T')[0]);
+    if(lastLocal && document.getElementById('lastBackupInfo')){
+      document.getElementById('lastBackupInfo').textContent='💾 Backup de hoje já feito';
+      document.getElementById('lastBackupInfo').style.display='block';
+    }
+  }
+}
+// Atualiza info após login
+const _origRenderAllBackup = renderAll;
+window.renderAll = function(){
+  _origRenderAllBackup.apply(this, arguments);
+  setTimeout(atualizarInfoUltimoBackup, 1000);
+};
+setTimeout(atualizarInfoUltimoBackup, 3000);
 
 </script>
 
