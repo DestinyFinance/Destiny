@@ -591,6 +591,14 @@
 }
 </style>
 
+<style>
+/* V83 - EDIT 10 - correções cirúrgicas */
+#deleteMonthBtnInline{ transition: all .15s ease; }
+#deleteMonthBtnInline:hover{ background:#FEE2E2 !important; transform: translateY(-1px); }
+#backupPanel button.small{ font-size:12px; }
+#profilePhotoWrap img{ border:2px solid #fff; }
+#lastBackupInfo{ max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+</style>
 </head>
 <body>
 
@@ -686,21 +694,19 @@
     <div class="sidebar-months">
       <p class="sidebar-label">Meses</p>
       <div class="months-list" id="monthsBar"></div>
-      <button id="deleteMonthBtnFinal" style="display:none !important;" class="small" style="margin-top:10px; width:100%; color:#DC2626; border-color:#FCA5A5; border-style:dashed; display:flex; align-items:center; justify-content:center; gap:6px;">🗑️ Excluir mês atual</button>
+      <button id="deleteMonthBtnFinal" class="small" style="display:none !important;">🗑️ Excluir mês atual</button>
       <div class="month-add" id="monthAddWrap"></div>
-    
-      <div style="border-top:1px solid var(--line); margin-top:12px; padding-top:12px;">
-        <p class="sidebar-label">💾 Backup</p>
-        <p id="lastBackupInfoSide" style="font-size:10px; color:#059669; margin:0 8px 8px; font-weight:600;"></p>
-        <div style="display:flex; flex-direction:column; gap:6px; padding:0 2px;">
-          <button id="btnBackupNow" class="small" style="width:100%; background:#0F172A; color:#fff; border:none; font-weight:700; height:32px;">Fazer backup agora</button>
-          <button id="btnDownloadBackup" class="small" style="width:100%;">Baixar JSON</button>
-          <label for="inputRestoreBackup" class="small" style="width:100%; border:1.5px dashed #94A3B8; border-radius:8px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:600;">Restaurar arquivo</label>
-          <input type="file" id="inputRestoreBackup" accept=".json" style="display:none;" />
+      <div id="backupPanel" style="margin-top:14px; padding:12px; border:1px solid #E5E7EB; border-radius:12px; background:#F9FAFB;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#6B7280; margin-bottom:8px;">Backup local</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button id="btnBackupNow" class="small" style="background:#111827; color:#fff; border:none; height:32px; padding:0 12px; border-radius:8px; font-weight:600; cursor:pointer;">💾 Fazer backup agora</button>
+          <button id="btnDownloadBackup" class="small" style="height:32px; padding:0 12px; border-radius:8px; border:1px solid #E5E7EB; background:#fff; cursor:pointer;">⬇️ Baixar JSON</button>
+          <label for="inputRestoreBackup" class="small" style="display:inline-flex; align-items:center; justify-content:center; height:32px; padding:0 12px; border:1px solid #E5E7EB; border-radius:8px; cursor:pointer; background:#fff; font-size:12px;">📂 Restaurar</label>
+          <input id="inputRestoreBackup" type="file" accept=".json,application/json" style="display:none;" />
         </div>
-        <p id="backupStatus" style="font-size:10px; color:#059669; margin-top:8px; padding:0 8px; display:none;"></p>
+        <div id="backupStatus" style="font-size:11px; color:#6B7280; margin-top:8px;"></div>
+        <div id="lastBackupInfoSide" style="font-size:11px; color:#6B7280; margin-top:4px;"></div>
       </div>
-
     <!-- PAINEL DO DONO - APENAS PARA ADMIN -->
     <div id="ownerPanel" style="display:none !important;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -747,13 +753,11 @@
           </button>
           <input type="text" id="nameInput" class="name-input" placeholder="Como você quer ser chamado?" maxlength="40" style="display:none;" />
         </div>
-        <div style="display:flex; flex-direction:column; gap:4px;">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <p id="subtitle" style="margin:0;">Sua renda, dividida com intenção.</p>
-          <button id="deleteMonthBtnInline" type="button" style="display:none; height:30px; padding:0 14px; border-radius:999px; border:1.5px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:11px; font-weight:700; cursor:pointer; align-items:center; justify-content:center; gap:5px; line-height:1;">🗑️ Excluir este mês</button>
+        <p id="subtitle">Sua renda, dividida com intenção.</p>
+        <div style="display:flex; align-items:center; gap:12px; margin-top:10px; flex-wrap:wrap;">
+          <button id="deleteMonthBtnInline" class="small" style="color:#DC2626; border-color:#FCA5A5; border-style:dashed; display:flex; align-items:center; justify-content:center; gap:6px; background:#FEF2F2; height:34px; padding:0 14px; border-radius:8px; font-weight:600; cursor:pointer;">🗑️ Excluir mês atual</button>
+          <span id="lastBackupInfo" style="font-size:11px; color:#6B7280;"></span>
         </div>
-        <span id="lastBackupInfo" style="font-size:10px; color:#64748B; display:none;">💾 Verificando backup...</span>
-      </div>
       </div>
     </header>
 
@@ -956,6 +960,17 @@
       <div id="viewProfile" style="display:none;">
         <div class="panel" style="max-width:520px;">
           <h2>Meu perfil</h2>
+          <div id="profilePhotoWrap" style="margin-top:12px; display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="width:72px; height:72px; border-radius:50%; background:#E5E7EB; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:2px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+              <img id="profilePhotoPreview" src="" alt="Foto de perfil" style="width:72px; height:72px; object-fit:cover; display:none;" />
+              <span id="profilePhotoPlaceholder" style="font-size:28px;">👤</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <label for="profilePhotoInput" style="font-size:12px; font-weight:600; cursor:pointer; color:#111827; border:1px solid #E5E7EB; padding:6px 12px; border-radius:8px; background:#fff; display:inline-flex; width:fit-content;">📷 Escolher foto</label>
+              <span style="font-size:11px; color:#6B7280;">JPG/PNG até 1MB</span>
+            </div>
+          </div>
+          <input id="profilePhotoInput" type="file" accept="image/*" style="display:none;" />
                     <div style="margin-top:16px; padding:12px; border:1px dashed #FCA5A5; background:#FEF2F2; border-radius:12px;">
             <h4 style="margin:0 0 8px; font-size:13px; color:#DC2626;">Zona de perigo</h4>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -1307,6 +1322,11 @@ function renderProfileView(){
   document.getElementById('profCpf').value = p.cpf ? formatCpfDisplay(p.cpf) : '';
   document.getElementById('profTelefone').value = p.telefone || '';
   document.getElementById('profEmail').value = (currentUser && currentUser.email) || '';
+  const fotoWrap = document.getElementById('profilePhotoWrap');
+  const fotoPrev = document.getElementById('profilePhotoPreview');
+  const fotoPh = document.getElementById('profilePhotoPlaceholder');
+  const fotoVal = (p && p.foto) ? p.foto : (window._profilePhotoBase64 || '');
+  if(fotoPrev){ if(fotoVal){ fotoPrev.src = fotoVal; fotoPrev.style.display='block'; if(fotoPh) fotoPh.style.display='none'; } else { fotoPrev.style.display='none'; if(fotoPh) fotoPh.style.display='block'; } }
   document.getElementById('profileLockNotice').style.display = profileIncomplete ? 'flex' : 'none';
   setProfileError('');
   document.getElementById('profileSavedMsg').classList.remove('show');
@@ -1317,6 +1337,7 @@ async function saveProfile(){
   const apelido = document.getElementById('profApelido').value.trim();
   const cpfDigits = document.getElementById('profCpf').value.replace(/\D/g, '');
   const telefone = document.getElementById('profTelefone').value.trim();
+  const foto = (profileData && profileData.foto) ? profileData.foto : (window._profilePhotoBase64 || '');
 
   setProfileError('');
   if (!nome || nome.split(' ').filter(Boolean).length < 2) { setProfileError('Digite seu nome completo.'); return; }
@@ -1338,9 +1359,9 @@ async function saveProfile(){
       await setDoc(cpfRef, { uid: currentUser.uid, createdAt: new Date().toISOString() });
     }
     await setDoc(doc(db, 'profiles', currentUser.uid), {
-      nome, apelido, cpf: cpfDigits, telefone, email: (currentUser.email || ''), updatedAt: new Date().toISOString()
+      nome, apelido, cpf: cpfDigits, telefone, foto, email: (currentUser.email || ''), updatedAt: new Date().toISOString()
     });
-    profileData = { nome, apelido, cpf: cpfDigits, telefone, email: currentUser.email || '' };
+    profileData = { nome, apelido, cpf: cpfDigits, telefone, foto, email: currentUser.email || '' };
     profileIncomplete = false;
     if (data) {
       data.profileName = apelido || nome.split(' ')[0];
@@ -2116,6 +2137,14 @@ function applyView(){
   document.getElementById('navProfile').classList.toggle('active', activeView === 'profile');
   const nAb = document.getElementById('navAbout'); if(nAb) nAb.classList.toggle('active', activeView === 'about');
   document.getElementById('navMonthLabel').textContent = currentMonth ? monthLabel(currentMonth) : 'Mês';
+  const delInline = document.getElementById('deleteMonthBtnInline');
+  if(delInline){
+    const show = (activeView==='month' && !profileIncomplete);
+    delInline.style.display = show ? 'flex' : 'none';
+    delInline.style.visibility = show ? 'visible' : 'hidden';
+  }
+  const delSide = document.getElementById('deleteMonthBtnFinal');
+  if(delSide){ delSide.style.display='none'; }
   document.getElementById('navOverview').disabled = profileIncomplete;
   document.getElementById('navMonth').disabled = profileIncomplete;
   // Esconde Olá Douglas só na aba Sobre
@@ -2161,52 +2190,40 @@ function renderAll(skipMonthsBar){
   applyView();
 }
 
-async function deleteCurrentMonth(){
-  const months = Object.keys(data.months);
-  if (months.length <= 1) {
-    alert('Não é possível apagar o único mês existente.');
-    return;
+let _isDeletingMonth = false;
+async function excluirMesAtual(){
+  if(_isDeletingMonth) return;
+  _isDeletingMonth = true;
+  try{
+    const months = Object.keys(data.months);
+    if(months.length <= 1){ alert('Não é possível apagar o único mês existente.'); return; }
+    const md = currentMonthData();
+    const totalInc = totalIncome(md);
+    const totalExp = md.categories.reduce((s,c)=>s+totalEntries(c.items),0);
+    const incCount = (md.incomeItems||[]).filter(i=>(i.valor||0)>0).length;
+    const expCount = md.categories.reduce((s,c)=>s+(c.items||[]).filter(i=>(i.valor||0)>0).length,0);
+    const totalCount = incCount+expCount;
+    let msg='';
+    if(totalCount>0 || totalInc>0 || totalExp>0){
+      msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!\n\n• ${totalCount} lançamento(s)\n• Receitas: ${fmt(totalInc)}\n• Despesas: ${fmt(totalExp)}\n\nApagar APENAS este mês? (os outros meses continuam)`;
+    } else {
+      msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?\nOs outros meses NÃO serão apagados.`;
+    }
+    if(!confirm(msg)) return;
+    const deletedYm = currentMonth;
+    delete data.months[deletedYm];
+    const remaining = Object.keys(data.months).sort();
+    const prevMonths = remaining.filter(m=>m<deletedYm);
+    currentMonth = prevMonths.length ? prevMonths[prevMonths.length-1] : remaining[remaining.length-1];
+    await persistNow();
+    renderAll();
+    alert(`Mês ${monthLabelLong(deletedYm)} excluído. Os outros meses foram mantidos.`);
+  } finally {
+    _isDeletingMonth = false;
   }
-
-  const md = currentMonthData();
-  const totalInc = totalIncome(md);
-  const totalExp = md.categories.reduce((s, c) => s + totalEntries(c.items), 0);
-  const incCount = (md.incomeItems || []).filter(i => (i.valor || 0) > 0).length;
-  const expCount = md.categories.reduce((s, c) => s + (c.items || []).filter(i => (i.valor || 0) > 0).length, 0);
-  const totalCount = incCount + expCount;
-
-  let msg = '';
-  if (totalCount > 0 || totalInc > 0 || totalExp > 0) {
-    msg = `⚠️ ATENÇÃO: O mês de ${monthLabelLong(currentMonth)} POSSUI VALORES!
-
-` +
-      `• ${totalCount} lançamento(s)
-` +
-      `• Receitas: ${fmt(totalInc)}
-` +
-      `• Despesas: ${fmt(totalExp)}
-
-` +
-      `Apagar APENAS este mês? (os outros meses continuam)`;
-  } else {
-    msg = `Apagar APENAS o mês de ${monthLabelLong(currentMonth)}?
-Os outros meses NÃO serão apagados.`;
-  }
-
-  if (!confirm(msg)) return;
-
-  const deletedYm = currentMonth;
-  // APENAS o mês atual é deletado
-  delete data.months[deletedYm];
-
-  const remaining = Object.keys(data.months).sort();
-  const prevMonths = remaining.filter(m => m < deletedYm);
-  currentMonth = prevMonths.length ? prevMonths[prevMonths.length - 1] : remaining[remaining.length - 1];
-
-  await persistNow();
-  renderAll();
-  alert(`Mês ${monthLabelLong(deletedYm)} excluído. Os outros meses foram mantidos.`);
 }
+// compat alias
+async function deleteCurrentMonth(){ return excluirMesAtual(); }
 
 
 async function handleReplicateFixedToCurrentMonth(){
@@ -2237,8 +2254,124 @@ async function handleReplicateFixedToCurrentMonth(){
   alert(`Valores fixos de ${monthLabel(sourceYm)} copiados para ${monthLabel(currentYm)} com sucesso!`);
 }
 
-document.getElementById('btnDeleteMonth')?.addEventListener('click', deleteCurrentMonth);
+document.getElementById('btnDeleteMonth')?.addEventListener('click', excluirMesAtual);
 document.getElementById('btnReplicateFixed')?.addEventListener('click', handleReplicateFixedToCurrentMonth);
+document.getElementById('deleteMonthBtnInline')?.addEventListener('click', excluirMesAtual);
+document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', excluirMesAtual);
+
+// === BACKUP JS - DESTINY V83 ===
+function atualizarInfoBackup(){
+  const last = localStorage.getItem('destiny_last_backup') || '';
+  const info = document.getElementById('lastBackupInfo');
+  const infoSide = document.getElementById('lastBackupInfoSide');
+  const txt = last ? 'Último backup: ' + new Date(last).toLocaleString('pt-BR') : 'Nenhum backup ainda';
+  if(info) info.textContent = txt;
+  if(infoSide) infoSide.textContent = txt;
+}
+function fazerBackup(){
+  try{
+    const state = localStorage.getItem('finance-app-data-v3') || (typeof data!=='undefined' ? JSON.stringify(data) : '{}');
+    const payload = {
+      data: (typeof data!=='undefined' ? data : null),
+      profile: (typeof profileData!=='undefined' ? profileData : null),
+      exportedAt: new Date().toISOString(),
+      version: 'V83'
+    };
+    const blobStr = JSON.stringify(payload, null, 2);
+    localStorage.setItem('destiny_backup_' + Date.now(), blobStr);
+    localStorage.setItem('destiny_last_backup', new Date().toISOString());
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '✅ Backup salvo localmente (' + new Date().toLocaleString('pt-BR') + ')';
+    atualizarInfoBackup();
+  }catch(err){
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '❌ Erro ao fazer backup: ' + (err.message||err);
+  }
+}
+function baixarBackupJSON(){
+  try{
+    const payload = {
+      data: (typeof data!=='undefined' ? data : null),
+      profile: (typeof profileData!=='undefined' ? profileData : null),
+      exportedAt: new Date().toISOString(),
+      version: 'V83'
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'destiny-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+    localStorage.setItem('destiny_last_backup', new Date().toISOString());
+    atualizarInfoBackup();
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '⬇️ Arquivo baixado';
+  }catch(err){
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '❌ Erro ao baixar: ' + (err.message||err);
+  }
+}
+async function restaurarDeArquivo(file){
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const obj = JSON.parse(text);
+    if(!obj || !obj.data){ throw new Error('Arquivo inválido'); }
+    if(!confirm('Restaurar backup de ' + (obj.exportedAt||'desconhecido') + '? Isso vai substituir dados locais.')) return;
+    if(typeof data!=='undefined' && obj.data){
+      // shallow merge months
+      data = obj.data;
+      if(typeof persistNow==='function') await persistNow();
+      else localStorage.setItem('finance-app-data-v3', JSON.stringify(obj.data));
+    }
+    if(obj.profile && typeof profileData!=='undefined'){
+      profileData = obj.profile;
+      if(profileData.foto) window._profilePhotoBase64 = profileData.foto;
+    }
+    localStorage.setItem('destiny_last_backup', new Date().toISOString());
+    atualizarInfoBackup();
+    if(typeof renderAll==='function') renderAll();
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '✅ Backup restaurado com sucesso';
+    alert('Backup restaurado!');
+  }catch(err){
+    const status = document.getElementById('backupStatus');
+    if(status) status.textContent = '❌ Erro ao restaurar: ' + (err.message||err);
+    alert('Erro ao restaurar: ' + err.message);
+  }
+}
+
+// listeners backup
+document.getElementById('btnBackupNow')?.addEventListener('click', fazerBackup);
+document.getElementById('btnDownloadBackup')?.addEventListener('click', baixarBackupJSON);
+document.getElementById('inputRestoreBackup')?.addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(f) restaurarDeArquivo(f);
+  e.target.value='';
+});
+atualizarInfoBackup();
+
+// === FOTO PERFIL ===
+window._profilePhotoBase64 = window._profilePhotoBase64 || '';
+document.getElementById('profilePhotoInput')?.addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(file.size > 1024*1024){ alert('Imagem muito grande. Use até 1MB'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const base64 = ev.target.result;
+    window._profilePhotoBase64 = base64;
+    const prev = document.getElementById('profilePhotoPreview');
+    const ph = document.getElementById('profilePhotoPlaceholder');
+    if(prev){ prev.src = base64; prev.style.display='block'; }
+    if(ph){ ph.style.display='none'; }
+    if(typeof profileData!=='undefined' && profileData){ profileData.foto = base64; }
+  };
+  reader.readAsDataURL(file);
+});
 
 document.getElementById('navOverview').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'overview'; applyView(); });
 document.getElementById('navMonth').addEventListener('click', () => { if (profileIncomplete) return; activeView = 'month'; applyView(); });
@@ -2864,255 +2997,6 @@ onAuthStateChanged(auth, async (user) => {
     authPass.value = '';
   }
 });
-
-// DELETE MES - FINAL FUNCIONANDO - GARANTIDO
-document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', async ()=>{
-  console.log('deleteMonth clicked', currentMonth);
-  if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
-  const ok1 = confirm(`Excluir o mês ${currentMonth}? Todos os lançamentos desse mês serão apagados permanentemente.`);
-  if(!ok1) return;
-  const ok2 = confirm('Tem certeza? Essa ação não pode ser desfeita.');
-  if(!ok2) return;
-  try{
-    delete data.months[currentMonth];
-    const remaining = Object.keys(data.months).sort();
-    if(remaining.length===0){
-      const now = new Date();
-      const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-      data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
-      currentMonth = ym;
-    } else {
-      currentMonth = remaining[remaining.length-1];
-    }
-    await persistNow();
-    renderAll();
-    alert('Mês excluído com sucesso');
-  }catch(e){ console.error(e); alert('Erro ao excluir mês: '+e.message); }
-});
-
-document.getElementById('deleteProfileDataBtnFinal')?.addEventListener('click', async ()=>{
-  if(!confirm('Excluir dados do perfil (nome, CPF, telefone)? Sua conta continua, mas precisará preencher o perfil novamente.')) return;
-  try{
-    try{ await deleteDoc(doc(db,'profiles',currentUser.uid)); }catch(e){ console.log('erro profiles', e); }
-    if(profileData && profileData.cpf){ try{ await deleteDoc(doc(db,'cpfRegistry',profileData.cpf)); }catch(e){} }
-    profileData = null;
-    profileIncomplete = true;
-    if(data){ data.profileName=''; saveData(); }
-    renderProfileView();
-    activeView='profile';
-    applyView();
-    alert('Dados do perfil excluídos');
-  }catch(e){ alert('Erro: '+e.message); }
-});
-
-document.getElementById('deleteAccountBtnFinal')?.addEventListener('click', async ()=>{
-  const c = prompt('Digite EXCLUIR para confirmar exclusão PERMANENTE da conta:');
-  if(c!=='EXCLUIR'){ alert('Cancelado'); return; }
-  const senha = prompt('Digite sua senha:');
-  if(!senha) return;
-  const errEl = document.getElementById('deleteErrorFinal');
-  if(errEl) errEl.style.display='none';
-  try{
-    const cred = EmailAuthProvider.credential(currentUser.email, senha);
-    await reauthenticateWithCredential(currentUser, cred);
-    const uid = currentUser.uid;
-    const cpfToDelete = profileData?.cpf;
-    try{ await deleteDoc(doc(db,'profiles',uid)); }catch(e){}
-    try{ await deleteDoc(doc(db,'users',uid)); }catch(e){}
-    try{ await deleteDoc(doc(db,'trialStatus',uid)); }catch(e){}
-    if(cpfToDelete){ try{ await deleteDoc(doc(db,'cpfRegistry',cpfToDelete)); }catch(e){} }
-    await deleteUser(currentUser);
-    alert('Conta excluída com sucesso');
-    location.reload();
-  }catch(e){
-    console.error(e);
-    const msg = (e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'||e.code==='auth/invalid-login-credentials') ? 'Senha incorreta' : e.message;
-    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
-    else alert(msg);
-  }
-});
-
-
-// ===== V82 FINAL - BASE V64 QUE LOGA + BACKUP + DELETE CENTRAL SEM LOOP =====
-(function(){
-  console.log('V82 FINAL carregando...');
-  
-  // BACKUP FUNCTIONS
-  function baixarBackupJSON(){
-    try{
-      if(!data){ alert('Sem dados'); return; }
-      const backupData = {
-        uid: currentUser ? currentUser.uid : 'anon',
-        email: currentUser ? currentUser.email : '',
-        date: new Date().toISOString(),
-        state: JSON.stringify(data),
-        version: 'v82-final'
-      };
-      const blob = new Blob([JSON.stringify(backupData, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'destiny-backup-' + new Date().toISOString().slice(0,10) + '.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      const s = document.getElementById('backupStatus');
-      if(s){ s.textContent='✅ JSON baixado!'; s.style.display='block'; }
-    }catch(e){ alert('Erro baixar: '+e.message); }
-  }
-  
-  async function fazerBackup(manual=true){
-    const status = document.getElementById('backupStatus');
-    try{
-      if(!currentUser || !data){ if(status){ status.textContent='Sem dados'; status.style.display='block'; } return; }
-      const now = new Date();
-      const backupData = {
-        uid: currentUser.uid,
-        email: currentUser.email,
-        date: now.toISOString().split('T')[0],
-        time: now.toLocaleString('pt-BR'),
-        timestamp: Date.now(),
-        state: JSON.stringify(data),
-        version: 'v82-final',
-        manual: manual
-      };
-      // Tenta salvar no Firestore
-      try{
-        const backupId = currentUser.uid + '_' + Date.now();
-        await setDoc(doc(db, 'backups', backupId), backupData);
-        if(status){ status.textContent='✅ Backup salvo na nuvem!'; status.style.display='block'; status.style.color='#059669'; }
-        if(manual) alert('✅ Backup salvo na nuvem!');
-      }catch(e){
-        console.log('Fallback local, erro nuvem:', e.message);
-        localStorage.setItem('destiny_backup_'+Date.now(), JSON.stringify(backupData));
-        localStorage.setItem('destiny_last_backup_'+currentUser.uid, JSON.stringify({date: backupData.date, time: backupData.time, timestamp: Date.now()}));
-        if(status){ status.textContent='✅ Salvo local + JSON (nuvem sem permissão)'; status.style.display='block'; status.style.color='#D97706'; }
-        baixarBackupJSON();
-        if(manual) alert('✅ Backup salvo localmente e JSON baixado!\nNuvem precisa de permissão nas regras.');
-      }
-      atualizarInfoBackup();
-    }catch(e){
-      console.error(e);
-      if(status){ status.textContent='Erro: '+e.message; status.style.display='block'; status.style.color='#DC2626'; }
-    }
-  }
-  
-  function atualizarInfoBackup(){
-    try{
-      const raw = currentUser ? localStorage.getItem('destiny_last_backup_'+currentUser.uid) : null;
-      if(!raw) return;
-      const last = JSON.parse(raw);
-      const elTop = document.getElementById('lastBackupInfo');
-      const elSide = document.getElementById('lastBackupInfoSide');
-      const texto = '💾 Último backup: ' + last.date + ' às ' + (last.time.split(' ')[1] || last.time);
-      if(elTop){ elTop.textContent=texto; elTop.style.display='block'; }
-      if(elSide){ elSide.textContent=texto; }
-    }catch(e){}
-  }
-  
-  function restaurarDeArquivo(file){
-    const reader = new FileReader();
-    reader.onload = async (e)=>{
-      try{
-        const parsed = JSON.parse(e.target.result);
-        const stateStr = parsed.state || JSON.stringify(parsed);
-        const newData = JSON.parse(stateStr);
-        if(confirm('Restaurar backup de ' + (parsed.date || 'arquivo') + '? Vai substituir dados atuais!')){
-          data = newData;
-          await persistNow();
-          renderAll();
-          alert('✅ Restaurado!');
-          atualizarInfoBackup();
-        }
-      }catch(err){ alert('Erro restaurar: '+err.message); }
-    };
-    reader.readAsText(file);
-  }
-  
-  // DELETE FUNCTION - SEM LOOP
-  let isDeleting = false;
-  async function excluirMesUnico(){
-    if(isDeleting){ console.log('Delete já em andamento, ignorando'); return; }
-    isDeleting = true;
-    const btn = document.getElementById('deleteMonthBtnInline');
-    if(btn) btn.disabled = true;
-    try{
-      if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
-      const mes = currentMonth;
-      console.log('Excluir:', mes);
-      if(!confirm('Excluir o mês ' + mes + '? Todos os lançamentos serão apagados PERMANENTEMENTE.')) return;
-      if(!confirm('Tem certeza absoluta? Mês: ' + mes + '\nNão tem como desfazer.')) return;
-      delete data.months[mes];
-      const remaining = Object.keys(data.months).sort();
-      if(remaining.length===0){
-        const now = new Date();
-        const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-        data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
-        currentMonth = ym;
-      } else {
-        currentMonth = remaining[remaining.length-1];
-      }
-      await persistNow();
-      renderAll();
-      alert('Mês ' + mes + ' excluído!');
-    }catch(e){ alert('Erro: '+e.message); console.error(e); }
-    finally{ isDeleting=false; const b=document.getElementById('deleteMonthBtnInline'); if(b) b.disabled=false; }
-  }
-  
-  // LIGA BOTÕES COM SEGURANÇA
-  function ligarTudo(){
-    const btnBackup = document.getElementById('btnBackupNow');
-    if(btnBackup && !btnBackup.dataset.v82){
-      btnBackup.addEventListener('click', ()=> fazerBackup(true));
-      btnBackup.dataset.v82='1';
-      console.log('Backup ligado OK');
-    }
-    const btnDownload = document.getElementById('btnDownloadBackup');
-    if(btnDownload && !btnDownload.dataset.v82){
-      btnDownload.addEventListener('click', baixarBackupJSON);
-      btnDownload.dataset.v82='1';
-    }
-    const inputRestore = document.getElementById('inputRestoreBackup');
-    if(inputRestore && !inputRestore.dataset.v82){
-      inputRestore.addEventListener('change', (e)=>{ const f=e.target.files[0]; if(f) restaurarDeArquivo(f); e.target.value=''; });
-      inputRestore.dataset.v82='1';
-    }
-    const btnDel = document.getElementById('deleteMonthBtnInline');
-    if(btnDel && !btnDel.dataset.v82){
-      const clone = btnDel.cloneNode(true);
-      btnDel.parentNode.replaceChild(clone, btnDel);
-      clone.addEventListener('click', excluirMesUnico);
-      clone.dataset.v82='1';
-      console.log('Delete central ligado OK');
-    }
-  }
-  
-  // Override seguro do applyView
-  function instalarApplyView(){
-    if(window.applyView && !window.applyView._v82){
-      const orig = window.applyView;
-      window.applyView = function(){
-        try{ orig(); }catch(e){ console.log('orig applyView erro', e); }
-        const btn = document.getElementById('deleteMonthBtnInline');
-        if(btn && currentMonth){
-          btn.style.display = 'inline-flex';
-        }
-      };
-      window.applyView._v82 = true;
-      console.log('applyView override OK');
-    }
-  }
-  
-  // Tenta ligar várias vezes
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); atualizarInfoBackup(); }, 1000);
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); }, 2500);
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); }, 4000);
-  document.addEventListener('DOMContentLoaded', ()=>{ ligarTudo(); instalarApplyView(); });
-  
-  console.log('V82 FINAL instalado');
-})();
-
 </script>
 
 
