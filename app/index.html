@@ -2811,30 +2811,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// DELETE MES - FINAL FUNCIONANDO - GARANTIDO
-document.getElementById('deleteMonthBtnFinal')?.addEventListener('click', async ()=>{
-  console.log('deleteMonth clicked', currentMonth);
-  if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
-  const ok1 = confirm(`Excluir o mês ${currentMonth}? Todos os lançamentos desse mês serão apagados permanentemente.`);
-  if(!ok1) return;
-  const ok2 = confirm('Tem certeza? Essa ação não pode ser desfeita.');
-  if(!ok2) return;
-  try{
-    delete data.months[currentMonth];
-    const remaining = Object.keys(data.months).sort();
-    if(remaining.length===0){
-      const now = new Date();
-      const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-      data.months[ym] = { incomeItems: [], categories: blankCategories(), activeProfile: null };
-      currentMonth = ym;
-    } else {
-      currentMonth = remaining[remaining.length-1];
-    }
-    await persistNow();
-    renderAll();
-    alert('Mês excluído com sucesso');
-  }catch(e){ console.error(e); alert('Erro ao excluir mês: '+e.message); }
-});
+// DELETE MES - removido handler antigo (botão lateral escondido, agora usa só o central)
 
 document.getElementById('deleteProfileDataBtnFinal')?.addEventListener('click', async ()=>{
   if(!confirm('Excluir dados do perfil (nome, CPF, telefone)? Sua conta continua, mas precisará preencher o perfil novamente.')) return;
@@ -2992,17 +2969,16 @@ document.getElementById('deleteAccountBtnFinal')?.addEventListener('click', asyn
     reader.readAsText(file);
   }
   
-  // DELETE FUNCTION - SEM LOOP
-  let isDeleting = false;
-  async function excluirMesUnico(){
-    if(isDeleting){ console.log('Delete já em andamento, ignorando'); return; }
-    isDeleting = true;
+  // DELETE MES - V86 ROBUSTO (1 mês só, sem clone, sem override frágil)
+  let _v86Deleting = false;
+  window.excluirMesUnico = async function(){
+    if(_v86Deleting){ console.log('Delete já em andamento'); return; }
+    _v86Deleting = true;
     const btn = document.getElementById('deleteMonthBtnInline');
     if(btn) btn.disabled = true;
     try{
       if(!currentMonth){ alert('Nenhum mês selecionado'); return; }
       const mes = currentMonth;
-      console.log('Excluir:', mes);
       if(!confirm('Excluir o mês ' + mes + '? Todos os lançamentos serão apagados PERMANENTEMENTE.')) return;
       if(!confirm('Tem certeza absoluta? Mês: ' + mes + '\nNão tem como desfazer.')) return;
       delete data.months[mes];
@@ -3019,60 +2995,54 @@ document.getElementById('deleteAccountBtnFinal')?.addEventListener('click', asyn
       renderAll();
       alert('Mês ' + mes + ' excluído!');
     }catch(e){ alert('Erro: '+e.message); console.error(e); }
-    finally{ isDeleting=false; const b=document.getElementById('deleteMonthBtnInline'); if(b) b.disabled=false; }
-  }
-  
-  // LIGA BOTÕES COM SEGURANÇA
+    finally{ _v86Deleting=false; const b=document.getElementById('deleteMonthBtnInline'); if(b) b.disabled=false; }
+  };
+
   function ligarTudo(){
     const btnBackup = document.getElementById('btnBackupNow');
-    if(btnBackup && !btnBackup.dataset.v82){
+    if(btnBackup && !btnBackup.dataset.v86){
       btnBackup.addEventListener('click', ()=> fazerBackup(true));
-      btnBackup.dataset.v82='1';
-      console.log('Backup ligado OK');
+      btnBackup.dataset.v86='1';
     }
     const btnDownload = document.getElementById('btnDownloadBackup');
-    if(btnDownload && !btnDownload.dataset.v82){
+    if(btnDownload && !btnDownload.dataset.v86){
       btnDownload.addEventListener('click', baixarBackupJSON);
-      btnDownload.dataset.v82='1';
+      btnDownload.dataset.v86='1';
     }
     const inputRestore = document.getElementById('inputRestoreBackup');
-    if(inputRestore && !inputRestore.dataset.v82){
+    if(inputRestore && !inputRestore.dataset.v86){
       inputRestore.addEventListener('change', (e)=>{ const f=e.target.files[0]; if(f) restaurarDeArquivo(f); e.target.value=''; });
-      inputRestore.dataset.v82='1';
+      inputRestore.dataset.v86='1';
     }
     const btnDel = document.getElementById('deleteMonthBtnInline');
-    if(btnDel && !btnDel.dataset.v82){
-      const clone = btnDel.cloneNode(true);
-      btnDel.parentNode.replaceChild(clone, btnDel);
-      clone.addEventListener('click', excluirMesUnico);
-      clone.dataset.v82='1';
-      console.log('Delete central ligado OK');
+    if(btnDel){
+      if(currentMonth) btnDel.style.display='inline-flex';
+      if(!btnDel.dataset.v86){
+        btnDel.addEventListener('click', window.excluirMesUnico);
+        btnDel.dataset.v86='1';
+        console.log('Delete central ligado OK - V86');
+      }
+    }
+    const btnFinal = document.getElementById('deleteMonthBtnFinal');
+    if(btnFinal && !btnFinal.dataset.v86){
+      btnFinal.addEventListener('click', window.excluirMesUnico);
+      btnFinal.dataset.v86='1';
     }
   }
-  
-  // Override seguro do applyView
-  function instalarApplyView(){
-    if(window.applyView && !window.applyView._v82){
-      const orig = window.applyView;
-      window.applyView = function(){
-        try{ orig(); }catch(e){ console.log('orig applyView erro', e); }
-        const btn = document.getElementById('deleteMonthBtnInline');
-        if(btn && currentMonth){
-          btn.style.display = 'inline-flex';
-        }
-      };
-      window.applyView._v82 = true;
-      console.log('applyView override OK');
+
+  function garantirBotaoExcluir(){
+    ligarTudo();
+    const btn = document.getElementById('deleteMonthBtnInline');
+    if(btn && currentMonth && btn.style.display==='none'){
+      btn.style.display='inline-flex';
     }
   }
-  
-  // Tenta ligar várias vezes
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); atualizarInfoBackup(); }, 1000);
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); }, 2500);
-  setTimeout(()=>{ ligarTudo(); instalarApplyView(); }, 4000);
-  document.addEventListener('DOMContentLoaded', ()=>{ ligarTudo(); instalarApplyView(); });
-  
-  console.log('V82 FINAL instalado');
+  setInterval(garantirBotaoExcluir, 500);
+  setTimeout(()=>{ ligarTudo(); atualizarInfoBackup(); }, 1000);
+  setTimeout(()=>{ ligarTudo(); }, 2500);
+  document.addEventListener('DOMContentLoaded', ()=>{ ligarTudo(); });
+
+  console.log('V86 FINAL instalado');
 })();
 
 </script>
