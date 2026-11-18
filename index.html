@@ -24,7 +24,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdro
 .btn-dark{background:var(--deep);color:#fff;border-color:var(--deep)}
 .btn-teal{background:var(--teal);color:#fff;border-color:var(--teal)}
 .btn-teal:hover{background:var(--teal-dark)}
-@media(max-width:820px){.nav-links{display:none}}
+@media(max-width:820px){.nav-links{display:none} .how-3{grid-template-columns:1fr!important}}
 /* HERO */
 .hero{background:var(--deep);color:#fff;padding:56px 0 56px;overflow:hidden}
 .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center}
@@ -154,9 +154,9 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
       <p>Você cadastra a entrada, define a % de cada categoria e o Destiny distribui tudo. Sobra, investimentos e gastos — calculados na hora. É o controle que o <strong style="color:#fff">FinBot</strong> não tem.</p>
       <div class="hero-cta">
         <a class="btn btn-teal" href="#assinatura">Ver planos e assinar →</a>
-        <a class="btn" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.25)" href="app/">Testar grátis 30 dias</a>
+        <a class="btn" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.25)" href="app/">Entrar no app</a>
       </div>
-      <p class="hero-note">30 dias grátis • Sem cartão no trial • Cancele quando quiser • Pagamento só com Mercado Pago</p>
+      <p class="hero-note">Cancele quando quiser • Pagamento só com Mercado Pago • 7 dias de garantia total</p>
     </div>
     <div class="hero-card">
       <h3>Acumulado total</h3>
@@ -175,36 +175,29 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
     <span class="section-label">⚡ Como funciona</span>
     <h2>3 passos para<br>clareza total.</h2>
     <p class="lead">Nada de planilhas complexas. Você cadastra, define e acompanha. O resto é com a gente.</p>
-    <div class="how-grid">
-      <div style="display:flex;flex-direction:column;gap:18px">
-        <div class="card">
-          <span class="num">01</span>
-          <div class="icon green">▣</div>
-          <h3>Cadastre entradas</h3>
-          <p>Salário, freelas, renda extra. Registre em segundos e organize por mês. O Destiny já soma seu acumulado total.</p>
-          <span class="pill"><i>✓</i> Concluído em menos de 2 minutos</span>
-        </div>
-        <div class="card">
-          <span style="font-size:12px;font-weight:800;color:#64748B">🔒 Seus dados, suas regras</span>
-          <p style="margin-top:8px">Autenticação Firebase, dados criptografados em repouso. Backup e exportação. Você pode exportar tudo a qualquer momento.</p>
-        </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:28px" class="how-3">
+      <div class="card" style="display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="icon green">▣</div><span class="num" style="font-size:28px;font-weight:900;color:#E2E8F0">01</span></div>
+        <h3>Cadastre entradas</h3>
+        <p>Salário, freelas, renda extra. Registre em segundos e organize por mês. O Destiny já soma seu acumulado total.</p>
+        <span class="pill" style="margin-top:auto"><i>✓</i> Em menos de 2 minutos</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:18px">
-        <div class="card">
-          <span class="num">02</span>
-          <div class="icon teal">⧉</div>
-          <h3>Defina categorias com %</h3>
-          <p>Crie categorias como Investimentos, Essenciais, Lazer. Defina a % de cada uma. Escolha um perfil pronto ou personalize 100%.</p>
-          <span class="pill"><i>✓</i> Concluído em menos de 2 minutos</span>
-        </div>
-        <div class="card">
-          <span class="num">03</span>
-          <div class="icon gold">▃</div>
-          <h3>Acompanhe sobra e investimentos</h3>
-          <p>Veja em tempo real quanto sobrou, quanto foi investido e se está dentro da meta. Sem sustos no fim do mês.</p>
-          <span class="pill"><i>✓</i> Concluído em menos de 2 minutos</span>
-        </div>
+      <div class="card" style="display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="icon teal">⧉</div><span class="num" style="font-size:28px;font-weight:900;color:#E2E8F0">02</span></div>
+        <h3>Defina categorias com %</h3>
+        <p>Crie categorias como Investimentos, Essenciais, Lazer. Defina a % de cada uma. Escolha um perfil pronto ou personalize 100%.</p>
+        <span class="pill" style="margin-top:auto"><i>✓</i> Em menos de 2 minutos</span>
       </div>
+      <div class="card" style="display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="icon gold">▃</div><span class="num" style="font-size:28px;font-weight:900;color:#E2E8F0">03</span></div>
+        <h3>Acompanhe sobra e investimentos</h3>
+        <p>Veja em tempo real quanto sobrou, quanto foi investido e se está dentro da meta. Sem sustos no fim do mês.</p>
+        <span class="pill" style="margin-top:auto"><i>✓</i> Em menos de 2 minutos</span>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:#0F2E26;color:#fff;border-radius:16px;padding:18px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:20px">🔒</span>
+      <div style="flex:1;min-width:240px"><strong style="font-size:14px">Seus dados, suas regras</strong><p style="font-size:13px;color:#CBD5E1;margin-top:2px">Autenticação Firebase, dados criptografados. Backup e exportação em todos os planos. Você exporta tudo a qualquer momento.</p></div>
     </div>
   </div>
 </section>
@@ -258,8 +251,10 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
         <p class="desc">Ideal para organizar suas finanças pessoais com clareza.</p>
         <ul>
           <li><span class="check">✓</span> Controle mensal completo</li>
-          <li><span class="check">✓</span> 3 perfis de categoria</li>
+          <li><span class="check">✓</span> Categorias ilimitadas</li>
           <li><span class="check">✓</span> Acumulado total</li>
+          <li><span class="check">✓</span> Exportação completa</li>
+          <li><span class="check">✓</span> Backup e exportação</li>
           <li><span class="check">✓</span> Suporte por e-mail</li>
         </ul>
         <div class="plan-foot">
@@ -274,10 +269,11 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
         <p class="desc">Economia de 7% • O melhor custo-benefício para foco de verdade.</p>
         <ul>
           <li><span class="check">✓</span> Tudo do Mensal</li>
-          <li><span class="check">✓</span> Economia garantida</li>
-          <li><span class="check">✓</span> Relatórios trimestrais</li>
+          <li><span class="check">✓</span> <strong>Economia de 7% vs. mensal</strong></li>
+          <li><span class="check">✓</span> Categorias ilimitadas</li>
+          <li><span class="check">✓</span> Exportação completa</li>
+          <li><span class="check">✓</span> Backup e exportação</li>
           <li><span class="check">✓</span> Suporte prioritário</li>
-          <li><span class="check">✓</span> Acesso antecipado a recursos</li>
         </ul>
         <div class="plan-foot">
           <a class="btn btn-teal" href="https://mpago.la/2CiRAfx" target="_blank" rel="noopener">Quero economizar →</a>
@@ -291,6 +287,7 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
         <p class="desc">Para quem quer extrair o máximo do Destiny sem limites. Economia de 17% vs. mensal.</p>
         <ul>
           <li><span class="check">✓</span> Tudo do Trimestral</li>
+          <li><span class="check">✓</span> <strong>Economia de 17% vs. mensal</strong></li>
           <li><span class="check">✓</span> Categorias ilimitadas</li>
           <li><span class="check">✓</span> Exportação completa</li>
           <li><span class="check">✓</span> Backup e exportação</li>
@@ -310,13 +307,13 @@ footer p{font-size:12px;color:#94A3B8;margin-top:6px}
   <div class="container" style="text-align:center">
     <span class="section-label">Assinatura</span>
     <h2>Comece hoje.<br>Cancele quando quiser.</h2>
-    <p class="lead" style="margin:0 auto">30 dias grátis. Depois, escolha Mensal, Trimestral ou Semestral. Sem fidelidade. Pagamento só com Mercado Pago, liberação automática.</p>
+    <p class="lead" style="margin:0 auto">7 dias de garantia. Depois, escolha Mensal, Trimestral ou Semestral. Sem fidelidade. Pagamento só com Mercado Pago, liberação automática.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px">
       <a class="btn btn-dark" style="height:48px;padding:0 24px" href="#planos">Ver planos acima ↑</a>
       <a class="btn" style="height:48px;padding:0 24px" href="app/">Entrar no app</a>
     </div>
     <div class="faq">
-      <div class="faq-item"><strong>Como funciona o trial?</strong><span>Você ganha 30 dias grátis. Se vencer e não pagar, no dia seguinte aparece a tela de pagamento. Sem carência.</span></div>
+      <div class="faq-item"><strong>Como funciona o acesso?</strong><span>Você ganha 7 dias de garantia. Se vencer e não pagar, no dia seguinte aparece a tela de pagamento. Sem carência.</span></div>
       <div class="faq-item"><strong>Como pago?</strong><span>Só com Mercado Pago. Assim que o pagamento é confirmado, o webhook libera seu acesso automaticamente.</span></div>
       <div class="faq-item"><strong>Posso cancelar?</strong><span>Sim, cancele quando quiser. Sem fidelidade e com 7 dias de garantia total.</span></div>
     </div>
